@@ -66,7 +66,14 @@ jobs:
           } | head -c 60000 > /tmp/pr.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "$BRANCH"
+          # Branch immer auf dem AKTUELLEN main aufbauen (sonst lehnt GitHub ab, falls main
+          # inzwischen Workflow-Dateien geändert hat) und nur die erzeugten Daten übernehmen.
+          mkdir -p /tmp/neu && cp app/rechtsdaten.json app/rechtsdaten.js /tmp/neu/
+          VERSION=$(python -c "import json;print(json.load(open('app/rechtsdaten.json',encoding='utf-8'))['meta']['version'])")
+          git fetch origin main
+          git checkout -f -B "$BRANCH" origin/main
+          cp /tmp/neu/rechtsdaten.json /tmp/neu/rechtsdaten.js app/
+          sed -i "s/const CACHE = \"[^\"]*\";/const CACHE = \"streifenhelfer-$VERSION\";/" app/sw.js
           git add app/rechtsdaten.json app/rechtsdaten.js app/sw.js
           git commit -m "Rechtsdaten-Update $(date -u +%Y-%m-%d)"
           git push --force origin "$BRANCH"
@@ -79,8 +86,14 @@ jobs:
               --body-file /tmp/pr.md
           fi
 
-      - name: Fehlschlag melden
-        if: steps.build.outputs.exit != '0' || steps.tests.outputs.exit != '0'
+      - name: Quellausfall melden
+        if: steps.build.outputs.exit == '2'
         run: |
-          echo "::error::Build (Exit ${{ steps.build.outputs.exit }}) oder Tests (Exit ${{ steps.tests.outputs.exit }}) fehlgeschlagen – Regelwerk prüfen."
+          echo "::warning::Mindestens eine Rechtsquelle war nicht erreichbar – für diese Gesetze wurde der bisherige Wortlaut übernommen (Details im Build-Log/PR). Der Wochenagent versucht den Abruf erneut."
+          grep -A30 "QUELLE_FEHLER" /tmp/build.txt >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Fehlschlag melden
+        if: steps.build.outputs.exit == '1' || steps.tests.outputs.exit != '0'
+        run: |
+          echo "::error::Zitierte Norm weggefallen/nicht gefunden (Build-Exit ${{ steps.build.outputs.exit }}) oder Tests rot (Exit ${{ steps.tests.outputs.exit }}) – Regelwerk prüfen."
           exit 1

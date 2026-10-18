@@ -20,7 +20,9 @@ import io
 import json
 import re
 import sys
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -76,10 +78,27 @@ def parse_citation(cit, alias_index, gesetze):
 # --------------------------------------------------------------------------
 # Hilfen
 # --------------------------------------------------------------------------
-def get(url, timeout=60):
-    req = urllib.request.Request(url, headers=UA)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+HOST_FEHLER = {}  # Host -> Anzahl endgültig fehlgeschlagener Abrufe
+
+
+def get(url, timeout=45, versuche=2):
+    """Abruf mit Wiederholung. Ist ein Host bereits zweimal ausgefallen, sofort abbrechen
+    (spart bei gesperrtem Host viele Minuten Wartezeit)."""
+    host = urllib.parse.urlsplit(url).netloc
+    if HOST_FEHLER.get(host, 0) >= 2:
+        raise OSError(f"{host} nicht erreichbar (übersprungen)")
+    for i in range(versuche):
+        try:
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError:
+            raise  # 404 o. Ä.: Wiederholen zwecklos
+        except Exception:
+            if i == versuche - 1:
+                HOST_FEHLER[host] = HOST_FEHLER.get(host, 0) + 1
+                raise
+            time.sleep(5)
 
 
 def strip_tags(s):
@@ -255,6 +274,11 @@ def main():
 
     report = {"nicht_gefunden": [], "weggefallen": [], "quelle_fehler": [], "nur_link": []}
     out_gesetze, out_normen = {}, {}
+    # Bisheriges Paket als Rückfallebene: fällt eine Quelle aus, bleibt der alte Wortlaut erhalten
+    try:
+        vorher = json.loads((APP / "rechtsdaten.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        vorher = {"gesetze": {}, "normen": {}}
     for law, g in gesetze.items():  # Katalog vollständig mitliefern (Aliase für den Zitat-Parser der App)
         out_gesetze[law] = {"name": g["name"], "quelle": g["quelle"], "gliederung": g["gliederung"],
                             "aliase": g["aliase"], "url": g.get("url", "")}
@@ -279,9 +303,17 @@ def main():
             else:
                 meta["url"] = g["url"]
                 report["nur_link"].append(law)
-        except Exception as e:  # Quelle nicht erreichbar -> nur Verweis
+        except Exception as e:  # Quelle nicht erreichbar -> bisherigen Wortlaut übernehmen
             meta["url"] = meta.get("url") or g.get("url", "")
-            report["quelle_fehler"].append(f"{law}: {e}")
+            alt_meta = vorher.get("gesetze", {}).get(law, {})
+            normen = {n["nr"]: {"bez": n["bez"], "titel": n.get("titel", ""), "text": n.get("text", "")}
+                      for n in vorher.get("normen", {}).values() if n.get("gesetz") == law}
+            for f in ("fassung", "konsolidiert", "abrufdatum", "stand"):
+                if f in alt_meta:
+                    meta[f] = alt_meta[f]
+            meta["nicht_aktualisiert"] = True
+            report["quelle_fehler"].append(
+                f"{law}: {e} – " + (f"bisheriger Wortlaut übernommen ({len(normen)} Normen)" if normen else "KEIN Wortlaut verfügbar"))
         print(f"  {law:14s} {len(normen):5d} Normen geladen  ({meta.get('fassung') or meta.get('abrufdatum') or g['quelle']})")
 
         wanted = set(by_law[law])
@@ -334,7 +366,10 @@ def main():
     for k, v in report.items():
         if v:
             print(f"\n{k.upper()} ({len(v)}):\n  " + "\n  ".join(sorted(v)))
-    return 1 if report["nicht_gefunden"] or report["weggefallen"] else 0
+    # 1 = Regelwerk betroffen, 2 = Quelle(n) nicht erreichbar (Paket enthält alten Wortlaut), 0 = ok
+    if report["nicht_gefunden"] or report["weggefallen"]:
+        return 1
+    return 2 if report["quelle_fehler"] else 0
 
 
 if __name__ == "__main__":
