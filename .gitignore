@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 *.log
+# wird beim Veröffentlichen erzeugt (tools/build_offline_html.py)
+app/streifenhelfer-offline.html
 # Echte Weisungen niemals einchecken – nur das Muster
 weisungen/
 *.weisungen.json

@@ -58,6 +58,7 @@ input{min-width:0}
 .stay button,.btn{min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:15px;padding:0 12px;cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .btn.small{min-height:36px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
 #result{margin-top:16px}
 .status{border-radius:12px;padding:14px;margin-bottom:12px;border:2px solid}
@@ -254,6 +255,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
       <div id="rdInfo" class="meta"></div>
       <button type="button" class="btn small" id="rdUpdateBtn" style="margin-top:8px">Auf neueres Paket prüfen</button>
       <div class="hint" id="rdUpdateMsg"></div>
+      <div class="hint" id="offlineWrap" style="margin-top:8px">Zum Kopieren auf ein Gerät ohne Installation: <a href="streifenhelfer-offline.html" download>Offline-Einzeldatei herunterladen</a> (eine HTML-Datei mit allen Daten, ca. 2 MB, ohne automatische Aktualisierung).</div>
     </fieldset>
     <fieldset><legend>Interne Weisungen</legend>
       <div class="hint">Weisungen werden nicht mit der App ausgeliefert. Sie können von einem internen Server oder aus Dateien auf dem Gerät geladen werden (Format: siehe WEISUNGEN-FORMAT.md).</div>
@@ -287,6 +289,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
 const $ = id => document.getElementById(id);
 const DAY = 86400000;
 const STALE_DAYS = 120;
+const APP_URL = "https://setpyp.github.io/streifenhelfer-auslaenderrecht/";
 let RD = window.RECHTSDATEN || null;          // öffentliches Paket
 let WPKGS = {};                                // Weisungspakete {quelleId: paket}
 const LS = { get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
@@ -589,7 +592,7 @@ async function checkRdUpdate(){
     else msg("rdUpdateMsg","Paket ist aktuell.");
   }catch(e){ msg("rdUpdateMsg","Keine Verbindung oder Fehler: "+e.message); }
 }
-function initData(){ buildAliasIndex(); buildNat(); refresh(); renderRdInfo(); updateHeader(); if(lastR) render(false); }
+function initData(){ if(window.STREIFENHELFER_EINZELDATEI || !location.protocol.startsWith("http")) $("offlineWrap").classList.add("hidden"); buildAliasIndex(); buildNat(); refresh(); renderRdInfo(); updateHeader(); if(lastR) render(false); }
 
 /* =====================================================================
    Start
@@ -611,6 +614,14 @@ function vermerk(){
   $("date").value = todayISO(); addStay();
   // neueres, früher heruntergeladenes Rechtsdatenpaket bevorzugen
   try{ const stored = await IDB.get("rechtsdaten"); if(stored && (!RD || stored.meta.version>RD.meta.version)) RD=stored; }catch(e){}
+  if(!RD || typeof evaluate!=="function"){
+    // typischer Fall: nur index.html ohne rechtsdaten.js/regelwerk.js kopiert
+    const fehlend=[!RD&&"rechtsdaten.js", typeof evaluate!=="function"&&"regelwerk.js"].filter(Boolean);
+    $("banners").innerHTML=`<div class="banner bad"><b>Die App ist unvollständig: ${fehlend.join(" und ")} ${fehlend.length>1?"fehlen":"fehlt"}.</b> Bitte nicht nur diese HTML-Datei kopieren, sondern entweder die App über <a href="${APP_URL}">${APP_URL}</a> öffnen und installieren oder die Offline-Einzeldatei <a href="${APP_URL}streifenhelfer-offline.html">streifenhelfer-offline.html</a> verwenden.</div>`;
+    $("normstand").textContent="Daten fehlen";
+    $("evalBtn").disabled=true; $("copyBtn").disabled=true;
+    return;
+  }
   initData();
   // gespeicherte Weisungen laden
   try{ const db=await IDB.open(); await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").openCursor(); q.onsuccess=()=>{ const c=q.result; if(!c) return res(); if(String(c.key).startsWith("w:")) WPKGS[String(c.key).slice(2)]=c.value; c.continue(); }; q.onerror=()=>res(); }); }catch(e){}

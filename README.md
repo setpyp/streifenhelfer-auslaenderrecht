@@ -61,5 +61,8 @@ Regeln für Agenten: [CLAUDE.md](CLAUDE.md). Gemergt wird immer von Hand nach Pr
 ## Betrieb
 
 - **Webserver (empfohlen):** Inhalt von `app/` über HTTPS ausliefern → installierbar, offline per Service Worker.
-- **Lokal:** `app/index.html` direkt öffnen funktioniert ebenfalls (ohne Aktualisierungsfunktion).
+- **Einzeldatei:** `streifenhelfer-offline.html` (wird beim Veröffentlichen erzeugt, Download unter
+  ⚙ in der App bzw. `…/streifenhelfer-offline.html`) enthält alles in einer Datei, ohne automatische
+  Aktualisierung. Nur `index.html` allein zu kopieren reicht **nicht** – die App braucht
+  `regelwerk.js` und `rechtsdaten.js` daneben.
 - Empfohlene HTTP-Header: `Content-Security-Policy` (u. a. `connect-src` auf App- und Weisungsserver beschränken).
