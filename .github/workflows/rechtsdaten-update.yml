@@ -1,0 +1,86 @@
+# Wöchentlich: Rechtsdaten aus amtlichen Quellen neu bauen, Änderungen als Pull Request vorlegen.
+# Gemergt wird nur nach fachlicher Prüfung (der Claude-Agent kommentiert den PR zusätzlich).
+name: Rechtsdaten-Update
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # montags 03:00 UTC (04:00/05:00 Uhr Berlin)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: rechtsdaten-update
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BRANCH: rechtsdaten/auto-update
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Rechtsdaten neu bauen
+        id: build
+        run: |
+          cp app/rechtsdaten.json /tmp/alt.json
+          set +e
+          python tools/build_rechtsdaten.py | tee /tmp/build.txt
+          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Änderungsbericht
+        id: diff
+        run: |
+          set +e
+          python tools/diff_rechtsdaten.py /tmp/alt.json app/rechtsdaten.json /tmp/bericht.md
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          cat /tmp/bericht.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Regressionstests
+        id: tests
+        run: |
+          set +e
+          node tests/run_tests.mjs > /tmp/tests.txt
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          tail -n 30 /tmp/tests.txt
+
+      - name: Pull Request anlegen/aktualisieren
+        if: steps.diff.outputs.exit != '0'
+        run: |
+          {
+            cat /tmp/bericht.md
+            echo
+            echo "### Build"
+            echo '```'; tail -n 15 /tmp/build.txt; echo '```'
+            echo "### Regressionstests (Exit ${{ steps.tests.outputs.exit }})"
+            echo '```'; tail -n 30 /tmp/tests.txt; echo '```'
+          } | head -c 60000 > /tmp/pr.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add app/rechtsdaten.json app/rechtsdaten.js app/sw.js
+          git commit -m "Rechtsdaten-Update $(date -u +%Y-%m-%d)"
+          git push --force origin "$BRANCH"
+          gh label create rechtsdaten --color 5a3d8a --description "Automatisches Rechtsdaten-Update" --force
+          if gh pr view "$BRANCH" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$BRANCH" --body-file /tmp/pr.md
+          else
+            gh pr create --head "$BRANCH" --base main --label rechtsdaten \
+              --title "Rechtsdaten-Update $(date -u +%Y-%m-%d) – fachliche Prüfung erforderlich" \
+              --body-file /tmp/pr.md
+          fi
+
+      - name: Fehlschlag melden
+        if: steps.build.outputs.exit != '0' || steps.tests.outputs.exit != '0'
+        run: |
+          echo "::error::Build (Exit ${{ steps.build.outputs.exit }}) oder Tests (Exit ${{ steps.tests.outputs.exit }}) fehlgeschlagen – Regelwerk prüfen."
+          exit 1

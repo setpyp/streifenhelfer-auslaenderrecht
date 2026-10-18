@@ -1,0 +1,12 @@
+# Technische Wartung: hält die GitHub-Actions-Versionen aktuell (PRs wöchentlich).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels: [wartung]
+    groups:
+      actions:
+        patterns: ["*"]

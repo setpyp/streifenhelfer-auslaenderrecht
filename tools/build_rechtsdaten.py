@@ -201,17 +201,49 @@ def load_eurlex(celex):
 
 
 # --------------------------------------------------------------------------
-def main():
-    gesetze = json.loads((DATEN / "gesetze.json").read_text("utf-8"))["gesetze"]
-    laender = json.loads((DATEN / "laender.json").read_text("utf-8"))
-    alias_index = build_alias_index(gesetze)
+QUELLDATEIEN = ["regelwerk.js", "index.html"]  # hier werden Normzitate gesucht
 
-    src = (APP / "index.html").read_text("utf-8")
+
+def collect_citations(gesetze, alias_index):
+    src = "\n".join((APP / f).read_text("utf-8") for f in QUELLDATEIEN)
     literals = set(re.findall(r'"((?:[^"\\\n]|\\.)*)"', src))
     citations = [l for l in literals if find_law(l, alias_index)]
     keys = set()
     for c in citations:
         keys.update(parse_citation(c, alias_index, gesetze))
+    return citations, keys
+
+
+def pruefen():
+    """Offline-Prüfung ohne Download: sind alle Zitate im vorhandenen Paket mit Wortlaut aufgelöst?"""
+    gesetze = json.loads((DATEN / "gesetze.json").read_text("utf-8"))["gesetze"]
+    paket = json.loads((APP / "rechtsdaten.json").read_text("utf-8"))
+    _, keys = collect_citations(gesetze, build_alias_index(gesetze))
+    fehler = []
+    for k in sorted(keys):
+        law = k.split(" § ")[0].split(" Art. ")[0]
+        if k == law or gesetze[law]["quelle"] == "link":
+            continue
+        n = paket["normen"].get(k)
+        if not n:
+            fehler.append(f"{k}: nicht im Paket (Paket neu bauen)")
+        elif n.get("weggefallen"):
+            fehler.append(f"{k}: weggefallen")
+        elif not n.get("text"):
+            fehler.append(f"{k}: ohne Wortlaut")
+    print(f"{len(keys)} zitierte Normen geprüft, {len(fehler)} Befunde")
+    for f in fehler:
+        print("  " + f)
+    return 1 if fehler else 0
+
+
+def main():
+    if "--pruefen" in sys.argv:
+        return pruefen()
+    gesetze = json.loads((DATEN / "gesetze.json").read_text("utf-8"))["gesetze"]
+    laender = json.loads((DATEN / "laender.json").read_text("utf-8"))
+    alias_index = build_alias_index(gesetze)
+    citations, keys = collect_citations(gesetze, alias_index)
     by_law = {}
     for k in keys:
         law = k.split(" § ")[0].split(" Art. ")[0] if (" § " in k or " Art. " in k) else k
@@ -261,6 +293,8 @@ def main():
             num = k.rsplit(" ", 1)[1]
             n = normen.get(num)
             entry = {"gesetz": law, "nr": num, "bez": f"{g['gliederung']} {num} {law}", "url": meta["url"]}
+            if k in by_law[law]:
+                entry["zitiert"] = True  # vom Regelwerk zitiert -> Änderungen sind fachlich zu prüfen
             if n:
                 entry.update({"titel": n["titel"], "text": n["text"]})
                 gone = re.fullmatch(r"\(?\s*(weggefallen|aufgehoben)\s*\)?", n["text"].strip() or "", re.I) or \

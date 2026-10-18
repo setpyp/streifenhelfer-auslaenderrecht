@@ -47,6 +47,17 @@ git push
 Installierte Apps holen sich die neue Fassung beim nächsten Öffnen mit Netz.
 Icons neu erzeugen: `powershell -File tools/make_icons.ps1`.
 
+## Automatisierung
+
+| Was | Wann | Ergebnis |
+|---|---|---|
+| [Rechtsdaten-Update](.github/workflows/rechtsdaten-update.yml) | montags 03:00 UTC | PR mit Änderungsbericht (geänderte zitierte Normen als Diff), nur bei inhaltlichen Änderungen |
+| Claude-Agent (Cloud-Routine) | montags nach dem Update | prüft den Rechtsdaten-PR fachlich, misst/optimiert Performance, Wartung – alles als PR |
+| [Dependabot](.github/dependabot.yml) | wöchentlich | PRs für veraltete GitHub-Actions |
+| [CI](.github/workflows/ci.yml) | bei jedem Push/PR | Regressionstests (`tests/`) und Zitatprüfung |
+
+Regeln für Agenten: [CLAUDE.md](CLAUDE.md). Gemergt wird immer von Hand nach Prüfung.
+
 ## Betrieb
 
 - **Webserver (empfohlen):** Inhalt von `app/` über HTTPS ausliefern → installierbar, offline per Service Worker.
