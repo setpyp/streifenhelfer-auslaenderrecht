@@ -30,6 +30,23 @@ python tools/build_rechtsdaten.py
 Für den Betrieb empfiehlt sich ein regelmäßiger Lauf (z. B. wöchentlich) mit fachlicher
 Freigabe vor dem Ausrollen.
 
+## Veröffentlichung (GitHub Pages)
+
+Live: **https://setpyp.github.io/streifenhelfer-auslaenderrecht/**
+
+Jeder Push auf `main` veröffentlicht den Ordner `app/` automatisch
+(Workflow [.github/workflows/pages.yml](.github/workflows/pages.yml)). Update-Ablauf:
+
+```
+python tools/build_rechtsdaten.py
+git add -A
+git commit -m "Rechtsdaten aktualisiert"
+git push
+```
+
+Installierte Apps holen sich die neue Fassung beim nächsten Öffnen mit Netz.
+Icons neu erzeugen: `powershell -File tools/make_icons.ps1`.
+
 ## Betrieb
 
 - **Webserver (empfohlen):** Inhalt von `app/` über HTTPS ausliefern → installierbar, offline per Service Worker.
