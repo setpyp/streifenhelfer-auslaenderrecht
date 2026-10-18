@@ -1,0 +1,29 @@
+{
+  "_hinweis": "Kategorien: DE, EU (Schengen), EUN (EU, nicht Schengen), EWR, CH, V (visumfrei, Anhang II VO (EU) 2018/1806), VB (visumfrei nur mit biometrischem Pass), P (visumpflichtig, Anhang I), X (staatenlos/ungeklärt). Bei jeder Änderung der VO (EU) 2018/1806 oder Aussetzungsbeschlüssen aktualisieren.",
+  "stand": "2026-10",
+  "kategorien": {
+    "DE": ["Deutschland"],
+    "EU": ["Belgien","Bulgarien","Dänemark","Estland","Finnland","Frankreich","Griechenland","Italien","Kroatien","Lettland","Litauen","Luxemburg","Malta","Niederlande","Österreich","Polen","Portugal","Rumänien","Schweden","Slowakei","Slowenien","Spanien","Tschechien","Ungarn"],
+    "EUN": ["Irland","Zypern"],
+    "EWR": ["Island","Liechtenstein","Norwegen"],
+    "CH": ["Schweiz"],
+    "V": ["Andorra","Antigua und Barbuda","Argentinien","Australien","Bahamas","Barbados","Brasilien","Brunei","Chile","Costa Rica","Dominica","El Salvador","Grenada","Guatemala","Honduras","Hongkong (SAR-Pass)","Israel","Japan","Kanada","Kiribati","Kolumbien","Macau (SAR-Pass)","Malaysia","Marshallinseln","Mauritius","Mexiko","Mikronesien","Monaco","Nauru","Neuseeland","Nicaragua","Palau","Panama","Paraguay","Peru","Salomonen","Samoa","San Marino","Seychellen","Singapur","St. Kitts und Nevis","St. Lucia","St. Vincent und die Grenadinen","Südkorea","Taiwan","Timor-Leste","Tonga","Trinidad und Tobago","Tuvalu","Uruguay","Vatikanstadt","Venezuela","Vereinigte Arabische Emirate","Vereinigte Staaten","Vereinigtes Königreich"],
+    "VB": ["Albanien","Bosnien und Herzegowina","Georgien","Kosovo","Moldau","Montenegro","Nordmazedonien","Serbien","Ukraine"],
+    "P": ["Afghanistan","Ägypten","Algerien","Angola","Armenien","Aserbaidschan","Äthiopien","Bahrain","Bangladesch","Belarus","Benin","Bolivien","Burkina Faso","China","Côte d'Ivoire","DR Kongo","Dominikanische Republik","Ecuador","Eritrea","Gambia","Ghana","Guinea","Guinea-Bissau","Haiti","Indien","Indonesien","Irak","Iran","Jamaika","Jemen","Jordanien","Kamerun","Kasachstan","Katar","Kenia","Kirgisistan","Kuba","Kuwait","Laos","Libanon","Liberia","Libyen","Mali","Marokko","Mauretanien","Mongolei","Myanmar","Nepal","Niger","Nigeria","Nordkorea","Oman","Pakistan","Palästinensische Gebiete","Philippinen","Republik Kongo","Russland","Saudi-Arabien","Senegal","Sierra Leone","Somalia","Sri Lanka","Sudan","Südafrika","Südsudan","Syrien","Tadschikistan","Tansania","Thailand","Togo","Tschad","Tunesien","Türkei","Turkmenistan","Uganda","Usbekistan","Vanuatu","Vietnam","Zentralafrikanische Republik"],
+    "X": ["staatenlos","ungeklärt"]
+  },
+  "hinweise": {
+    "Vereinigtes Königreich": "Brexit: Drittstaat. Begünstigte des Austrittsabkommens besitzen „Aufenthaltsdokument-GB“ (§ 16 FreizügG/EU).",
+    "Ukraine": "Vorübergehender Schutz (RL 2001/55/EG, § 24 AufenthG) – Verlängerung bis 04.03.2027 beschlossen; aktuelle Übergangsregelungen prüfen.",
+    "Türkei": "Assoziationsrecht (ARB 1/80, Stillhalteklausel) bei Inhabern deutscher Titel beachten.",
+    "Vanuatu": "Visumbefreiung durch EU ausgesetzt (Aussetzungsmechanismus) – Stand prüfen.",
+    "Serbien": "Visumfreiheit gilt nicht für Pässe der serbischen Koordinierungsdirektion (Kosovo-Ausstellung).",
+    "Kolumbien": "Visumfreiheit – Aussetzungsdiskussion auf EU-Ebene, Stand prüfen.",
+    "Venezuela": "Visumfreiheit – Stand prüfen.",
+    "Hongkong (SAR-Pass)": "Visumfrei nur mit HKSAR-Pass bzw. BN(O)-Pass.",
+    "Macau (SAR-Pass)": "Visumfrei nur mit Macau-SAR-Pass.",
+    "Taiwan": "Visumfrei nur mit Pass, der Personalausweisnummer enthält.",
+    "staatenlos": "Staatenlose ohne Wohnsitz in visumfreiem Staat: visumpflichtig; Reiseausweis für Staatenlose prüfen.",
+    "ungeklärt": "Identität und Staatsangehörigkeit klären (§ 49 AufenthG, § 23 BPolG); bis dahin wie visumpflichtig behandeln."
+  }
+}

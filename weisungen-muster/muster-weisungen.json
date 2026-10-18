@@ -1,0 +1,43 @@
+{
+  "typ": "streifenhelfer-weisungen",
+  "meta": {
+    "bezeichnung": "MUSTER – Testpaket (keine echten Weisungen)",
+    "herausgeber": "Muster-Dienststelle",
+    "stand": "2026-10-01",
+    "version": "1",
+    "einstufung": "offen (Testdaten)"
+  },
+  "weisungen": [
+    {
+      "id": "MUSTER-001",
+      "titel": "MUSTER: Verfahren bei Zurückschiebung nach § 57 Abs. 2 AufenthG",
+      "fundstelle": "Muster-Erlass Nr. 1/2026, Ziff. 3",
+      "gueltigAb": "2026-06-12",
+      "gueltigBis": null,
+      "einstufung": "offen (Testdaten)",
+      "normen": ["§ 57 Abs. 2 AufenthG", "§ 71 Abs. 3 Nr. 1 AufenthG"],
+      "stichworte": ["Zurückschiebung", "Übernahmeersuchen"],
+      "text": "Platzhaltertext. Hier stünde der Wortlaut bzw. die Kurzfassung der internen Regelung.\n\n1. Ablaufschritt …\n2. Ablaufschritt …",
+      "link": "https://intranet.example/weisungen/muster-001"
+    },
+    {
+      "id": "MUSTER-002",
+      "titel": "MUSTER: Umgang mit Schutzgesuchen an der Binnengrenze",
+      "fundstelle": "Muster-Erlass Nr. 2/2026",
+      "gueltigAb": "2026-06-12",
+      "einstufung": "offen (Testdaten)",
+      "normen": ["§ 18 AsylG", "AMMR"],
+      "stichworte": ["Asyl", "Binnengrenze", "Einreiseverweigerung"],
+      "text": "Platzhaltertext für eine Verfahrensregelung."
+    },
+    {
+      "id": "MUSTER-003",
+      "titel": "MUSTER: Abgelaufene Regelung (wird ausgegraut angezeigt)",
+      "fundstelle": "Muster-Erlass Nr. 7/2024",
+      "gueltigAb": "2024-01-01",
+      "gueltigBis": "2025-12-31",
+      "normen": ["§ 57 AufenthG"],
+      "text": "Diese Regelung ist nicht mehr gültig."
+    }
+  ]
+}

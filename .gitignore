@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.log
+# Echte Weisungen niemals einchecken – nur das Muster
+weisungen/
+*.weisungen.json

@@ -1,0 +1,37 @@
+# Streifenhelfer Aufenthalt
+
+Offlinefähige Entscheidungshilfe zur aufenthaltsrechtlichen Bewertung bei Kontrollen.
+**Keine verbindliche Rechtsauskunft.**
+
+## Aufbau
+
+| Pfad | Inhalt |
+|---|---|
+| `app/` | auszuliefernde Web-App (PWA): `index.html` (Oberfläche + Regelwerk), `rechtsdaten.js/.json` (erzeugt), `sw.js` (Offline-Cache) |
+| `daten/gesetze.json` | Katalog der öffentlichen Rechtsquellen (Quelle, Aliase, ob vollständig aufzunehmen) |
+| `daten/laender.json` | Staaten nach Visumkategorie (VO (EU) 2018/1806) mit Hinweisen |
+| `tools/build_rechtsdaten.py` | erzeugt das Rechtsdatenpaket aus amtlichen Quellen und prüft die Zitate |
+| `weisungen-muster/` | Muster für interne Weisungspakete |
+| `WEISUNGEN-FORMAT.md` | Format und Serveranforderungen für interne Weisungen |
+
+## Rechtsdaten aktualisieren
+
+```
+python tools/build_rechtsdaten.py
+```
+
+- Lädt die zitierten Normen (und Kerngesetze vollständig) von gesetze-im-internet.de und
+  EUR-Lex (neueste konsolidierte Fassung).
+- Prüft jedes Zitat im Regelwerk: **Exit-Code 1**, wenn eine zitierte Norm weggefallen oder
+  nicht auffindbar ist. Dann vor der Auslieferung das Regelwerk anpassen.
+- Setzt die Cache-Version im Service Worker, damit Geräte das neue Paket laden.
+- Die App warnt, wenn das Paket älter als 120 Tage ist.
+
+Für den Betrieb empfiehlt sich ein regelmäßiger Lauf (z. B. wöchentlich) mit fachlicher
+Freigabe vor dem Ausrollen.
+
+## Betrieb
+
+- **Webserver (empfohlen):** Inhalt von `app/` über HTTPS ausliefern → installierbar, offline per Service Worker.
+- **Lokal:** `app/index.html` direkt öffnen funktioniert ebenfalls (ohne Aktualisierungsfunktion).
+- Empfohlene HTTP-Header: `Content-Security-Policy` (u. a. `connect-src` auf App- und Weisungsserver beschränken).
