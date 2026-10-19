@@ -28,12 +28,15 @@ def main():
     out_path = sys.argv[3] if len(sys.argv) > 3 else None
     A, N = alt.get("normen", {}), neu.get("normen", {})
 
-    zit_geaendert, sonst_geaendert, weggefallen, neu_zitiert, entfallen = [], [], [], [], []
+    zit_geaendert, sonst_geaendert, weggefallen, neu_zitiert, entfallen, verloren = [], [], [], [], [], []
     for k, n in N.items():
         a = A.get(k)
         if a is None:
             if n.get("zitiert"):
                 neu_zitiert.append(k)
+            continue
+        if a.get("text") and not (n.get("text") or "").strip():
+            verloren.append(k)
             continue
         if (a.get("text"), a.get("titel")) != (n.get("text"), n.get("titel")):
             (zit_geaendert if n.get("zitiert") else sonst_geaendert).append(k)
@@ -50,12 +53,12 @@ def main():
             fassungen.append(f"{law}: {ga.get('fassung', '–')} → {g['fassung']}")
 
     bericht_neu = neu.get("bericht", {})
-    fehler = bericht_neu.get("weggefallen", []) + bericht_neu.get("nicht_gefunden", [])
-    quellfehler = bericht_neu.get("quelle_fehler", [])
+    fehler = bericht_neu.get("weggefallen", []) + bericht_neu.get("nicht_gefunden", []) + [f"{k} (Wortlaut verloren)" for k in verloren]
+    quellfehler = bericht_neu.get("quelle_fehler", []) + bericht_neu.get("wortlaut_behalten", [])
 
     L = [f"## Rechtsdaten-Update {alt['meta']['version']} → {neu['meta']['version']}", ""]
     if fehler:
-        L += ["### ⚠️ Zitierte Normen weggefallen oder nicht auffindbar", "Das Regelwerk (`app/regelwerk.js`) muss angepasst werden:", ""]
+        L += ["### ⚠️ Zitierte Normen weggefallen, nicht auffindbar oder ohne Wortlaut", "Regelwerk (`app/regelwerk.js`) bzw. Einlesen im Build prüfen:", ""]
         L += [f"- `{k}`" for k in fehler] + [""]
     if quellfehler:
         L += ["### ⚠️ Quellen nicht erreichbar (Wortlaut evtl. veraltet)", ""] + [f"- {q}" for q in quellfehler] + [""]

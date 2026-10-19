@@ -54,8 +54,16 @@ jobs:
           echo "exit=$?" >> "$GITHUB_OUTPUT"
           tail -n 30 /tmp/tests.txt
 
+      - name: Veralteten Bot-PR schließen
+        if: steps.diff.outputs.exit == '0'
+        run: |
+          if gh pr view "$BRANCH" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr close "$BRANCH" --delete-branch --comment "Automatisch geschlossen: Der Lauf vom $(date -u +%Y-%m-%d) ergibt keine inhaltlichen Änderungen gegenüber main mehr."
+          fi
+
+      # Nur bei sauberen inhaltlichen Änderungen (Exit 10) einen PR anlegen – fehlerhafte Pakete (Exit 1) nie
       - name: Pull Request anlegen/aktualisieren
-        if: steps.diff.outputs.exit != '0'
+        if: steps.diff.outputs.exit == '10'
         run: |
           {
             cat /tmp/bericht.md
@@ -96,7 +104,7 @@ jobs:
           grep -A30 "QUELLE_FEHLER" /tmp/build.txt >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Fehlschlag melden
-        if: steps.build.outputs.exit == '1' || steps.tests.outputs.exit != '0'
+        if: steps.build.outputs.exit == '1' || steps.diff.outputs.exit == '1' || steps.tests.outputs.exit != '0'
         run: |
-          echo "::error::Zitierte Norm weggefallen/nicht gefunden (Build-Exit ${{ steps.build.outputs.exit }}) oder Tests rot (Exit ${{ steps.tests.outputs.exit }}) – Regelwerk prüfen."
+          echo "::error::Build-Exit ${{ steps.build.outputs.exit }}, Diff-Exit ${{ steps.diff.outputs.exit }}, Tests-Exit ${{ steps.tests.outputs.exit }} – zitierte Norm weggefallen/ohne Wortlaut oder Tests rot. Kein PR angelegt; Regelwerk bzw. Build prüfen."
           exit 1

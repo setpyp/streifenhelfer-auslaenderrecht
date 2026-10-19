@@ -89,9 +89,15 @@ def get(url, timeout=45, versuche=2):
         raise OSError(f"{host} nicht erreichbar (übersprungen)")
     for i in range(versuche):
         try:
+            if "eur-lex.europa.eu" in host:
+                time.sleep(2)  # höflich abrufen – EUR-Lex sperrt bei zu vielen Anfragen
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read()
+                body = r.read()
+                # EUR-Lex-Bot-Schutz antwortet mit 202 und leerem Inhalt – das ist KEIN Erfolg
+                if r.status != 200 or len(body) < 500:
+                    raise OSError(f"HTTP {r.status}, {len(body)} Bytes (Bot-Schutz/Sperre?)")
+                return body
         except urllib.error.HTTPError:
             raise  # 404 o. Ä.: Wiederholen zwecklos
         except Exception:
@@ -155,10 +161,7 @@ def load_gii(slug):
 def eurlex_latest_consolidated(celex):
     if not re.match(r"^3\d{4}[RL]\d{4}$", celex):
         return None
-    try:
-        page = get(f"https://eur-lex.europa.eu/legal-content/DE/ALL/?uri=CELEX:{celex}").decode("utf-8", "replace")
-    except Exception:
-        return None
+    page = get(f"https://eur-lex.europa.eu/legal-content/DE/ALL/?uri=CELEX:{celex}").decode("utf-8", "replace")
     base = "0" + celex[1:]
     today = dt.date.today().strftime("%Y%m%d")
     dates = sorted(set(d for d in re.findall(re.escape(base) + r"-(\d{8})", page) if d <= today))
@@ -272,7 +275,7 @@ def main():
         if g.get("vollstaendig"):
             by_law.setdefault(law, set())
 
-    report = {"nicht_gefunden": [], "weggefallen": [], "quelle_fehler": [], "nur_link": []}
+    report = {"nicht_gefunden": [], "weggefallen": [], "quelle_fehler": [], "wortlaut_behalten": [], "nur_link": []}
     out_gesetze, out_normen = {}, {}
     # Bisheriges Paket als Rückfallebene: fällt eine Quelle aus, bleibt der alte Wortlaut erhalten
     try:
@@ -291,15 +294,21 @@ def main():
             if g["quelle"] == "gii":
                 meta["url"] = f"https://www.gesetze-im-internet.de/{g['slug']}/"
                 normen, info = load_gii(g["slug"])
+                if not normen:
+                    raise RuntimeError("keine Paragrafen erkannt")
                 meta.update(info)
             elif g["quelle"] == "eurlex":
                 meta["url"] = f"https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:{g['celex']}"
                 normen, info = load_eurlex(g["celex"])
+                if not normen:
+                    raise RuntimeError("keine Artikel erkannt (Seite geändert oder gesperrt?)")
+                alt_fassung = vorher.get("gesetze", {}).get(law, {}).get("fassung") or ""
+                # bisher konsolidiert -> neue Fassung muss ebenfalls konsolidiert und mindestens gleich neu sein
+                if alt_fassung.startswith("0") and (not info["konsolidiert"] or info["fassung"] < alt_fassung):
+                    raise RuntimeError(f"abgerufene Fassung {info['fassung']} ist älter als bisherige {alt_fassung}")
                 meta.update(info)
                 if info.get("konsolidiert"):
                     meta["url"] = f"https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:{info['fassung']}"
-                if not normen:
-                    report["nur_link"].append(f"{law}: keine Artikelstruktur erkannt")
             else:
                 meta["url"] = g["url"]
                 report["nur_link"].append(law)
@@ -327,6 +336,11 @@ def main():
             entry = {"gesetz": law, "nr": num, "bez": f"{g['gliederung']} {num} {law}", "url": meta["url"]}
             if k in by_law[law]:
                 entry["zitiert"] = True  # vom Regelwerk zitiert -> Änderungen sind fachlich zu prüfen
+            alt_n = vorher.get("normen", {}).get(k) or {}
+            if alt_n.get("text") and not alt_n.get("weggefallen") and (not n or not n["text"].strip()):
+                n = {"titel": alt_n.get("titel", ""), "text": alt_n["text"]}
+                entry["nicht_aktualisiert"] = True
+                report["wortlaut_behalten"].append(f"{k}: neuer Wortlaut leer/fehlend – bisheriger übernommen (Einlesefehler?)")
             if n:
                 entry.update({"titel": n["titel"], "text": n["text"]})
                 gone = re.fullmatch(r"\(?\s*(weggefallen|aufgehoben)\s*\)?", n["text"].strip() or "", re.I) or \
@@ -369,7 +383,7 @@ def main():
     # 1 = Regelwerk betroffen, 2 = Quelle(n) nicht erreichbar (Paket enthält alten Wortlaut), 0 = ok
     if report["nicht_gefunden"] or report["weggefallen"]:
         return 1
-    return 2 if report["quelle_fehler"] else 0
+    return 2 if report["quelle_fehler"] or report["wortlaut_behalten"] else 0
 
 
 if __name__ == "__main__":
