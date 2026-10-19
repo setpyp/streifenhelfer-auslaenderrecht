@@ -8,7 +8,7 @@ Live über GitHub Pages aus `app/`. Sprache in Code-Kommentaren, Commits und PRs
 - `app/index.html` – Oberfläche, Zitat-Parser, Weisungsimport, Norm-Dialog
 - `app/rechtsdaten.js/.json` – **erzeugt** von `tools/build_rechtsdaten.py`, nie von Hand ändern
 - `app/sw.js` – Service Worker (Netz zuerst, Offline-Fallback); neue App-Dateien in `ASSETS` eintragen
-- `daten/` – Gesetzeskatalog und Länderliste (Quellen für das Paket)
+- `daten/` – Gesetzeskatalog, Länderliste und `sonderregelungen.json` (Befreiungen; `verifiziert: true` nur bei unmittelbarer Grundlage im Gesetzestext)
 - `tests/faelle.json` + `tests/run_tests.mjs` – Regressionstests mit fachlich festgelegten Erwartungen
 
 ## Pflichtprüfungen vor jedem PR

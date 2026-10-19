@@ -1,82 +1,579 @@
 {
   "_hinweis": "Fachlich festgelegte Erwartungen an das Regelwerk. Änderungen an Erwartungen nur nach rechtlicher Prüfung und mit Begründung im PR. Textangaben sind Teilstrings der Titel.",
   "standard": {
-    "date": "2026-10-19", "age": 30, "unaccompanied": false, "eufam": false, "place": "rail", "from": "schengen",
-    "nearEntry": false, "purpose": "tourism", "iddoc": "pass", "title": "none", "validUntil": null, "visaDays": 90,
-    "ltvDE": false, "restrictViol": false, "restrictRepeat": false, "days": null, "entryDE": null, "asylum": false,
-    "sisRefusal": false, "working": false, "smuggling": false, "nomeans": false, "identityUnclear": false, "warrant": false
+    "date": "2026-10-19",
+    "age": 30,
+    "unaccompanied": false,
+    "eufam": false,
+    "place": "rail",
+    "from": "schengen",
+    "nearEntry": false,
+    "purpose": "tourism",
+    "iddoc": "pass",
+    "title": "none",
+    "validUntil": null,
+    "visaDays": 90,
+    "ltvDE": false,
+    "restrictViol": false,
+    "restrictRepeat": false,
+    "days": null,
+    "entryDE": null,
+    "asylum": false,
+    "sisRefusal": false,
+    "working": false,
+    "smuggling": false,
+    "nomeans": false,
+    "identityUnclear": false,
+    "warrant": false
   },
   "faelle": [
-    {"name": "Deutscher ohne Ausweis im Zug", "eingabe": {"nat": "Deutschland", "iddoc": "none"},
-     "erwartet": {"level": "ok", "head": "Deutsche/r Staatsangehörige/r", "feststellungen": ["Kein Ausländer", "Ausweis-/Passpflicht"], "strafrecht_nicht": ["Unerlaubte"]}},
-
-    {"name": "Unionsbürger ohne Dokument", "eingabe": {"nat": "Polen", "iddoc": "none"},
-     "erwartet": {"level": "ok", "head": "Freizügigkeitsberechtigt (vermutet)", "feststellungen": ["Kein gültiges Ausweisdokument"], "strafrecht": ["Ordnungswidrigkeit Ausweispflicht"], "massnahmen_nicht": ["Zurückweisung", "Zurückschiebung"]}},
-
-    {"name": "Unionsbürger mit Einreiseverbot an der Grenze", "eingabe": {"nat": "Rumänien", "place": "internal_border", "sisRefusal": true},
-     "erwartet": {"level": "bad", "massnahmen": ["Zurückweisung"], "strafrecht": ["Einreise/Aufenthalt trotz Verbot"]}},
-
-    {"name": "US-Bürger 40 Tage", "eingabe": {"nat": "Vereinigte Staaten", "days": 40},
-     "erwartet": {"level": "ok", "head": "Rechtmäßiger Aufenthalt", "strafrecht_nicht": ["Unerlaubte"]}},
-
-    {"name": "US-Bürger Overstay 120 Tage", "eingabe": {"nat": "Vereinigte Staaten", "days": 120},
-     "erwartet": {"level": "bad", "head": "Unerlaubter Aufenthalt", "strafrecht": ["Unerlaubter Aufenthalt"], "strafrecht_nicht": ["Unerlaubte Einreise"], "hinweise": ["Ältere Sichtvermerksabkommen"]}},
-
-    {"name": "Visumfrei, Dauer unbekannt", "eingabe": {"nat": "Japan"},
-     "erwartet": {"level": "warn", "head": "Status ungeklärt – weitere Prüfung"}},
-
-    {"name": "Serbe mit nicht-biometrischem Pass", "eingabe": {"nat": "Serbien", "iddoc": "pass_nonbio"},
-     "erwartet": {"level": "bad", "feststellungen": ["Visumfreiheit nur mit biometrischem Pass"], "strafrecht": ["Unerlaubte Einreise"]}},
-
-    {"name": "Syrer ohne Dokumente an der Binnengrenze", "eingabe": {"nat": "Syrien", "place": "internal_border", "iddoc": "none"},
-     "erwartet": {"level": "bad", "head": "Einreisevoraussetzungen nicht erfüllt", "massnahmen": ["Zurückweisung / Einreiseverweigerung", "Zurückweisungshaft"], "strafrecht": ["Versuchte unerlaubte Einreise", "Pass beim Grenzübertritt nicht mitgeführt"], "massnahmen_nicht": ["Zurückschiebung"]}},
-
-    {"name": "Syrer ohne Visum im Zug, grenznah", "eingabe": {"nat": "Syrien", "nearEntry": true},
-     "erwartet": {"level": "bad", "head": "Unerlaubte Einreise und unerlaubter Aufenthalt", "massnahmen": ["Zurückschiebung in Mitgliedstaat", "Festhalten / Sicherungshaft", "Erkennungsdienstliche Behandlung"], "strafrecht": ["Unerlaubte Einreise", "Unerlaubter Aufenthalt"], "benachrichtigungen": ["Konsularische Benachrichtigung"]}},
-
-    {"name": "Einreise aus Drittstaat: Zurückschiebung Außengrenze und Screening", "eingabe": {"nat": "Marokko", "from": "nonschengen", "place": "inland"},
-     "erwartet": {"level": "bad", "massnahmen": ["Zurückschiebung (Außengrenze)", "Überprüfung (Screening)"]}},
-
-    {"name": "Inder mit Schengen-Visum arbeitet", "eingabe": {"nat": "Indien", "title": "visa_c", "validUntil": "2026-11-01", "days": 20, "visaDays": 30, "working": true},
-     "erwartet": {"level": "warn", "head": "Aufenthalt gedeckt – Verstöße festgestellt", "strafrecht": ["Unerlaubte Beschäftigung mit Schengen-Visum"], "benachrichtigungen": ["Finanzkontrolle Schwarzarbeit"]}},
-
-    {"name": "Visum überschritten", "eingabe": {"nat": "Indien", "title": "visa_c", "validUntil": "2026-11-01", "days": 40, "visaDays": 30},
-     "erwartet": {"level": "bad", "feststellungen": ["Zulässige Aufenthaltsdauer des Visums überschritten"], "strafrecht": ["Unerlaubter Aufenthalt"]}},
-
-    {"name": "LTV-Visum nicht für DE", "eingabe": {"nat": "Indien", "title": "visa_ltv", "validUntil": "2026-11-01", "days": 5},
-     "erwartet": {"level": "bad", "feststellungen": ["VrG/LTV-Visum nicht für Deutschland gültig"]}},
-
-    {"name": "Deutscher Titel abgelaufen", "eingabe": {"nat": "Türkei", "title": "at_de", "validUntil": "2026-01-01"},
-     "erwartet": {"level": "warn", "head": "Status ungeklärt – weitere Prüfung", "massnahmen": ["Sachverhalt aufklären"]}},
-
-    {"name": "Geduldeter, wiederholter Verstoß räumliche Beschränkung", "eingabe": {"nat": "Irak", "title": "duldung", "validUntil": "2026-12-01", "restrictViol": true, "restrictRepeat": true},
-     "erwartet": {"level": "warn", "head": "Geduldet – ausreisepflichtig", "strafrecht": ["Wiederholter Verstoß gegen räumliche Beschränkung"], "strafrecht_nicht": ["Unerlaubter Aufenthalt"]}},
-
-    {"name": "Geduldeter, erstmaliger Verstoß", "eingabe": {"nat": "Irak", "title": "duldung", "validUntil": "2026-12-01", "restrictViol": true},
-     "erwartet": {"strafrecht": ["Verstoß gegen räumliche Beschränkung"], "strafrecht_nicht": ["Wiederholter"]}},
-
-    {"name": "Asylbewerber mit Gestattung, erstmaliger Verstoß", "eingabe": {"nat": "Afghanistan", "title": "gestattung", "restrictViol": true},
-     "erwartet": {"level": "warn", "strafrecht": ["Verstoß gegen Aufenthaltsbeschränkung"], "massnahmen": ["Durchsetzung der Verlassenspflicht"]}},
-
-    {"name": "Unbegleiteter Minderjähriger mit Asylgesuch im Inland", "eingabe": {"nat": "Afghanistan", "age": 16, "unaccompanied": true, "asylum": true, "iddoc": "none"},
-     "erwartet": {"level": "warn", "head": "Asylsuchende/r", "massnahmen": ["Weiterleitung an Aufnahmeeinrichtung", "Jugendamt"], "massnahmen_nicht": ["Festhalten / Sicherungshaft", "Zurückweisung"], "hinweise": ["Aufenthaltsbeendigung bei Minderjährigen"]}},
-
-    {"name": "Asylgesuch an der Binnengrenze", "eingabe": {"nat": "Syrien", "place": "internal_border", "asylum": true, "iddoc": "none"},
-     "erwartet": {"level": "warn", "head": "Asylsuchende/r", "massnahmen": ["Einreiseverweigerung nach § 18 Abs. 2 AsylG prüfen"], "massnahmen_nicht": ["Zurückweisung / Einreiseverweigerung", "Zurückweisungshaft"]}},
-
-    {"name": "Kind unter 14 strafunmündig", "eingabe": {"nat": "Syrien", "age": 12, "unaccompanied": true},
-     "erwartet": {"hinweise": ["Strafunmündig"], "massnahmen": ["Jugendamt"]}},
-
-    {"name": "Einreiseverbot SIS bei visumfreiem Drittstaater", "eingabe": {"nat": "Albanien", "sisRefusal": true, "days": 10},
-     "erwartet": {"level": "bad", "strafrecht": ["Einreise/Aufenthalt trotz Einreiseverbot"]}},
-
-    {"name": "Ausreise eines Overstayers", "eingabe": {"nat": "Brasilien", "place": "exit", "days": 100},
-     "erwartet": {"level": "warn", "head": "Unerlaubter Aufenthalt – Ausreise", "massnahmen": ["Ausreise zulassen und dokumentieren"], "massnahmen_nicht": ["Festhalten / Sicherungshaft"]}},
-
-    {"name": "Schleusungsverdacht", "eingabe": {"nat": "Syrien", "smuggling": true},
-     "erwartet": {"strafrecht": ["Einschleusen von Ausländern"]}},
-
-    {"name": "Staatsangehörigkeit fehlt", "eingabe": {"nat": ""},
-     "erwartet": {"level": "warn", "head": "Staatsangehörigkeit fehlt"}}
+    {
+      "name": "Deutscher ohne Ausweis im Zug",
+      "eingabe": {
+        "nat": "Deutschland",
+        "iddoc": "none"
+      },
+      "erwartet": {
+        "level": "ok",
+        "head": "Deutsche/r Staatsangehörige/r",
+        "feststellungen": [
+          "Kein Ausländer",
+          "Ausweis-/Passpflicht"
+        ],
+        "strafrecht_nicht": [
+          "Unerlaubte"
+        ]
+      }
+    },
+    {
+      "name": "Unionsbürger ohne Dokument",
+      "eingabe": {
+        "nat": "Polen",
+        "iddoc": "none"
+      },
+      "erwartet": {
+        "level": "ok",
+        "head": "Freizügigkeitsberechtigt (vermutet)",
+        "feststellungen": [
+          "Kein gültiges Ausweisdokument"
+        ],
+        "strafrecht": [
+          "Ordnungswidrigkeit Ausweispflicht"
+        ],
+        "massnahmen_nicht": [
+          "Zurückweisung",
+          "Zurückschiebung"
+        ]
+      }
+    },
+    {
+      "name": "Unionsbürger mit Einreiseverbot an der Grenze",
+      "eingabe": {
+        "nat": "Rumänien",
+        "place": "internal_border",
+        "sisRefusal": true
+      },
+      "erwartet": {
+        "level": "bad",
+        "massnahmen": [
+          "Zurückweisung"
+        ],
+        "strafrecht": [
+          "Einreise/Aufenthalt trotz Verbot"
+        ]
+      }
+    },
+    {
+      "name": "US-Bürger 40 Tage",
+      "eingabe": {
+        "nat": "Vereinigte Staaten",
+        "days": 40
+      },
+      "erwartet": {
+        "level": "ok",
+        "head": "Rechtmäßiger Aufenthalt",
+        "strafrecht_nicht": [
+          "Unerlaubte"
+        ]
+      }
+    },
+    {
+      "name": "US-Bürger Overstay 120 Tage",
+      "eingabe": {
+        "nat": "Vereinigte Staaten",
+        "days": 120
+      },
+      "erwartet": {
+        "level": "bad",
+        "head": "Unerlaubter Aufenthalt",
+        "strafrecht": [
+          "Unerlaubter Aufenthalt"
+        ],
+        "strafrecht_nicht": [
+          "Unerlaubte Einreise"
+        ],
+        "hinweise_nicht": [
+          "Ältere Sichtvermerksabkommen"
+        ]
+      },
+      "_begruendung": "Korrigiert: USA stehen nicht in Anlage A AufenthV (kein älteres Sichtvermerksabkommen nach § 16 AufenthV)."
+    },
+    {
+      "name": "Visumfrei, Dauer unbekannt",
+      "eingabe": {
+        "nat": "Japan"
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Status ungeklärt – weitere Prüfung"
+      }
+    },
+    {
+      "name": "Serbe mit nicht-biometrischem Pass",
+      "eingabe": {
+        "nat": "Serbien",
+        "iddoc": "pass_nonbio"
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Visumfreiheit nur mit biometrischem Pass"
+        ],
+        "strafrecht": [
+          "Unerlaubte Einreise"
+        ]
+      }
+    },
+    {
+      "name": "Syrer ohne Dokumente an der Binnengrenze",
+      "eingabe": {
+        "nat": "Syrien",
+        "place": "internal_border",
+        "iddoc": "none"
+      },
+      "erwartet": {
+        "level": "bad",
+        "head": "Einreisevoraussetzungen nicht erfüllt",
+        "massnahmen": [
+          "Zurückweisung / Einreiseverweigerung",
+          "Zurückweisungshaft"
+        ],
+        "strafrecht": [
+          "Versuchte unerlaubte Einreise",
+          "Pass beim Grenzübertritt nicht mitgeführt"
+        ],
+        "massnahmen_nicht": [
+          "Zurückschiebung"
+        ]
+      }
+    },
+    {
+      "name": "Syrer ohne Visum im Zug, grenznah",
+      "eingabe": {
+        "nat": "Syrien",
+        "nearEntry": true
+      },
+      "erwartet": {
+        "level": "bad",
+        "head": "Unerlaubte Einreise und unerlaubter Aufenthalt",
+        "massnahmen": [
+          "Zurückschiebung in Mitgliedstaat",
+          "Festhalten / Sicherungshaft",
+          "Erkennungsdienstliche Behandlung"
+        ],
+        "strafrecht": [
+          "Unerlaubte Einreise",
+          "Unerlaubter Aufenthalt"
+        ],
+        "benachrichtigungen": [
+          "Konsularische Benachrichtigung"
+        ]
+      }
+    },
+    {
+      "name": "Einreise aus Drittstaat: Zurückschiebung Außengrenze und Screening",
+      "eingabe": {
+        "nat": "Marokko",
+        "from": "nonschengen",
+        "place": "inland"
+      },
+      "erwartet": {
+        "level": "bad",
+        "massnahmen": [
+          "Zurückschiebung (Außengrenze)",
+          "Überprüfung (Screening)"
+        ]
+      }
+    },
+    {
+      "name": "Inder mit Schengen-Visum arbeitet",
+      "eingabe": {
+        "nat": "Indien",
+        "title": "visa_c",
+        "validUntil": "2026-11-01",
+        "days": 20,
+        "visaDays": 30,
+        "working": true
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Aufenthalt gedeckt – Verstöße festgestellt",
+        "strafrecht": [
+          "Unerlaubte Beschäftigung mit Schengen-Visum"
+        ],
+        "benachrichtigungen": [
+          "Finanzkontrolle Schwarzarbeit"
+        ]
+      }
+    },
+    {
+      "name": "Visum überschritten",
+      "eingabe": {
+        "nat": "Indien",
+        "title": "visa_c",
+        "validUntil": "2026-11-01",
+        "days": 40,
+        "visaDays": 30
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Zulässige Aufenthaltsdauer des Visums überschritten"
+        ],
+        "strafrecht": [
+          "Unerlaubter Aufenthalt"
+        ]
+      }
+    },
+    {
+      "name": "LTV-Visum nicht für DE",
+      "eingabe": {
+        "nat": "Indien",
+        "title": "visa_ltv",
+        "validUntil": "2026-11-01",
+        "days": 5
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "VrG/LTV-Visum nicht für Deutschland gültig"
+        ]
+      }
+    },
+    {
+      "name": "Deutscher Titel abgelaufen",
+      "eingabe": {
+        "nat": "Türkei",
+        "title": "at_de",
+        "validUntil": "2026-01-01"
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Status ungeklärt – weitere Prüfung",
+        "massnahmen": [
+          "Sachverhalt aufklären"
+        ]
+      }
+    },
+    {
+      "name": "Geduldeter, wiederholter Verstoß räumliche Beschränkung",
+      "eingabe": {
+        "nat": "Irak",
+        "title": "duldung",
+        "validUntil": "2026-12-01",
+        "restrictViol": true,
+        "restrictRepeat": true
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Geduldet – ausreisepflichtig",
+        "strafrecht": [
+          "Wiederholter Verstoß gegen räumliche Beschränkung"
+        ],
+        "strafrecht_nicht": [
+          "Unerlaubter Aufenthalt"
+        ]
+      }
+    },
+    {
+      "name": "Geduldeter, erstmaliger Verstoß",
+      "eingabe": {
+        "nat": "Irak",
+        "title": "duldung",
+        "validUntil": "2026-12-01",
+        "restrictViol": true
+      },
+      "erwartet": {
+        "strafrecht": [
+          "Verstoß gegen räumliche Beschränkung"
+        ],
+        "strafrecht_nicht": [
+          "Wiederholter"
+        ]
+      }
+    },
+    {
+      "name": "Asylbewerber mit Gestattung, erstmaliger Verstoß",
+      "eingabe": {
+        "nat": "Afghanistan",
+        "title": "gestattung",
+        "restrictViol": true
+      },
+      "erwartet": {
+        "level": "warn",
+        "strafrecht": [
+          "Verstoß gegen Aufenthaltsbeschränkung"
+        ],
+        "massnahmen": [
+          "Durchsetzung der Verlassenspflicht"
+        ]
+      }
+    },
+    {
+      "name": "Unbegleiteter Minderjähriger mit Asylgesuch im Inland",
+      "eingabe": {
+        "nat": "Afghanistan",
+        "age": 16,
+        "unaccompanied": true,
+        "asylum": true,
+        "iddoc": "none"
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Asylsuchende/r",
+        "massnahmen": [
+          "Weiterleitung an Aufnahmeeinrichtung",
+          "Jugendamt"
+        ],
+        "massnahmen_nicht": [
+          "Festhalten / Sicherungshaft",
+          "Zurückweisung"
+        ],
+        "hinweise": [
+          "Aufenthaltsbeendigung bei Minderjährigen"
+        ]
+      }
+    },
+    {
+      "name": "Asylgesuch an der Binnengrenze",
+      "eingabe": {
+        "nat": "Syrien",
+        "place": "internal_border",
+        "asylum": true,
+        "iddoc": "none"
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Asylsuchende/r",
+        "massnahmen": [
+          "Einreiseverweigerung nach § 18 Abs. 2 AsylG prüfen"
+        ],
+        "massnahmen_nicht": [
+          "Zurückweisung / Einreiseverweigerung",
+          "Zurückweisungshaft"
+        ]
+      }
+    },
+    {
+      "name": "Kind unter 14 strafunmündig",
+      "eingabe": {
+        "nat": "Syrien",
+        "age": 12,
+        "unaccompanied": true
+      },
+      "erwartet": {
+        "hinweise": [
+          "Strafunmündig"
+        ],
+        "massnahmen": [
+          "Jugendamt"
+        ]
+      }
+    },
+    {
+      "name": "Einreiseverbot SIS bei visumfreiem Drittstaater",
+      "eingabe": {
+        "nat": "Albanien",
+        "sisRefusal": true,
+        "days": 10
+      },
+      "erwartet": {
+        "level": "bad",
+        "strafrecht": [
+          "Einreise/Aufenthalt trotz Einreiseverbot"
+        ]
+      }
+    },
+    {
+      "name": "Ausreise eines Overstayers",
+      "eingabe": {
+        "nat": "Brasilien",
+        "place": "exit",
+        "days": 100
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Unerlaubter Aufenthalt – Ausreise",
+        "massnahmen": [
+          "Ausreise zulassen und dokumentieren"
+        ],
+        "massnahmen_nicht": [
+          "Festhalten / Sicherungshaft"
+        ]
+      }
+    },
+    {
+      "name": "Schleusungsverdacht",
+      "eingabe": {
+        "nat": "Syrien",
+        "smuggling": true
+      },
+      "erwartet": {
+        "strafrecht": [
+          "Einschleusen von Ausländern"
+        ]
+      }
+    },
+    {
+      "name": "Staatsangehörigkeit fehlt",
+      "eingabe": {
+        "nat": ""
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Staatsangehörigkeit fehlt"
+      }
+    },
+    {
+      "name": "Kanadier Overstay: Hinweis auf Anlage-A-Abkommen",
+      "eingabe": {
+        "nat": "Kanada",
+        "days": 120
+      },
+      "erwartet": {
+        "level": "bad",
+        "hinweise": [
+          "Ältere Sichtvermerksabkommen"
+        ]
+      }
+    },
+    {
+      "name": "Kanadier 120 Tage mit bestätigtem Anlage-A-Abkommen",
+      "eingabe": {
+        "nat": "Kanada",
+        "days": 120,
+        "sonder": {
+          "id": "anlage-a-sichtvermerk",
+          "erfuellt": true
+        }
+      },
+      "erwartet": {
+        "level": "ok",
+        "head": "Rechtmäßiger Aufenthalt",
+        "feststellungen": [
+          "Befreiung: Ältere Sichtvermerksabkommen"
+        ],
+        "strafrecht_nicht": [
+          "Unerlaubter Aufenthalt"
+        ],
+        "hinweise": [
+          "Geltungsbereich der Befreiung"
+        ]
+      }
+    },
+    {
+      "name": "Türkischer Lkw-Fahrer, Einreise aus Schengen-Staat, Voraussetzungen bestätigt",
+      "eingabe": {
+        "nat": "Türkei",
+        "age": 65,
+        "place": "internal_border",
+        "from": "schengen",
+        "purpose": "work",
+        "working": true,
+        "days": 10,
+        "sonder": {
+          "id": "tr-fahrpersonal",
+          "erfuellt": true
+        }
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Voraussichtlich rechtmäßig – Befreiung prüfen",
+        "feststellungen": [
+          "Befreiung: Türkisches Fahrpersonal"
+        ],
+        "feststellungen_nicht": [
+          "Unerlaubte Erwerbstätigkeit",
+          "Erforderlicher Aufenthaltstitel fehlt"
+        ],
+        "massnahmen_nicht": [
+          "Zurückweisung"
+        ],
+        "strafrecht_nicht": [
+          "Unerlaubte",
+          "Versuchte"
+        ],
+        "hinweise": [
+          "Geltungsbereich der Befreiung",
+          "Hinweise zur Befreiung"
+        ]
+      }
+    },
+    {
+      "name": "Türkischer Lkw-Fahrer, Voraussetzungen nicht bestätigt",
+      "eingabe": {
+        "nat": "Türkei",
+        "place": "internal_border",
+        "from": "schengen",
+        "working": true,
+        "sonder": {
+          "id": "tr-fahrpersonal",
+          "erfuellt": false
+        }
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Befreiung nicht anwendbar",
+          "Erforderlicher Aufenthaltstitel fehlt"
+        ],
+        "massnahmen": [
+          "Zurückweisung / Einreiseverweigerung"
+        ]
+      }
+    },
+    {
+      "name": "Türkischer Tourist ohne Visum (keine Befreiung, Demirkan)",
+      "eingabe": {
+        "nat": "Türkei",
+        "place": "internal_border",
+        "from": "schengen"
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Erforderlicher Aufenthaltstitel fehlt"
+        ]
+      }
+    },
+    {
+      "name": "Hinweis auf Abkommen anderer Staaten wirkt nicht als Befreiung",
+      "eingabe": {
+        "nat": "Indien",
+        "sonder": {
+          "id": "bilaterale-abkommen-anderer-staaten",
+          "erfuellt": false
+        }
+      },
+      "erwartet": {
+        "level": "bad",
+        "hinweise": [
+          "Bilaterale Abkommen und nationale Ausnahmen"
+        ],
+        "feststellungen_nicht": [
+          "Befreiung nicht anwendbar"
+        ]
+      }
+    }
   ]
 }

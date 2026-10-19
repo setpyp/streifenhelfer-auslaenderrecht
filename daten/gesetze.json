@@ -45,6 +45,15 @@
     "AEUV":       {"name": "Vertrag über die Arbeitsweise der EU", "aliase": ["AEUV"], "quelle": "eurlex", "celex": "12016E/TXT", "gliederung": "Art."},
     "FZA":        {"name": "Freizügigkeitsabkommen EU–Schweiz", "aliase": ["FZA"], "quelle": "eurlex", "celex": "22002A0430(01)", "gliederung": "Art."},
 
+    "AssAbk EWG-TR":{"name": "Abkommen zur Gründung einer Assoziation EWG–Türkei (1963)", "aliase": ["AssAbk EWG-TR", "Assoziierungsabkommen EWG-Türkei"], "quelle": "eurlex", "celex": "21964A1229(01)", "gliederung": "Art."},
+    "ZP EWG-TR":  {"name": "Zusatzprotokoll zum Assoziierungsabkommen EWG–Türkei (1970), ABl. 1972 L 293", "aliase": ["ZP EWG-TR", "Zusatzprotokoll EWG-Türkei"], "quelle": "eurlex", "celex": "21970A1123(01)", "gliederung": "Art."},
+    "VO 1072/2009":{"name": "VO (EG) 1072/2009 – Güterkraftverkehrsmarkt (Fahrerbescheinigung)", "aliase": ["1072/2009"], "quelle": "eurlex", "celex": "32009R1072", "gliederung": "Art."},
+    "Abkommensliste SDÜ":{"name": "Liste der bilateralen Visumbefreiungsabkommen der Mitgliedstaaten (Art. 20 Abs. 2d SDÜ), ABl. C 130 vom 8.4.2019", "aliase": ["2019/C 130/07", "Liste bilateraler Abkommen"], "quelle": "eurlex_dok", "celex": "52019XC0408(02)", "gliederung": "Art."},
+    "Mitteilung VisaVO":{"name": "Mitteilung der Kommission: nationale Ausnahmen der Mitgliedstaaten nach VO (EU) 2018/1806, ABl. C 340/2023", "aliase": ["2023/C 340"], "quelle": "eurlex_dok", "celex": "52023XC0927(01)", "gliederung": "Art."},
+    "EuGH Soysal":{"name": "EuGH, Urteil vom 19.02.2009, C-228/06 (Soysal und Savatli)", "aliase": ["EuGH Soysal", "C-228/06"], "quelle": "eurlex_dok", "celex": "62006CJ0228", "gliederung": "Rn."},
+    "EuGH Demirkan":{"name": "EuGH, Urteil vom 24.09.2013, C-221/11 (Demirkan)", "aliase": ["EuGH Demirkan", "C-221/11"], "quelle": "eurlex_dok", "celex": "62011CJ0221", "gliederung": "Rn."},
+    "BVerwG 1 C 9.14":{"name": "BVerwG, Urteil 1 C 9.14 (2015) (keine Visumfreiheit für selbständige türkische Dienstleister ohne Verschlechterung)", "aliase": ["BVerwG 1 C 9.14"], "quelle": "link", "url": "https://www.bverwg.de/", "gliederung": "Rn."},
+
     "EMRK":       {"name": "Europäische Menschenrechtskonvention", "aliase": ["EMRK"], "quelle": "link", "url": "https://www.echr.coe.int/documents/d/echr/convention_deu", "gliederung": "Art."},
     "GFK":        {"name": "Genfer Flüchtlingskonvention", "aliase": ["GFK"], "quelle": "link", "url": "https://www.unhcr.org/dach/wp-content/uploads/sites/27/2017/03/GFK_Pocket_2015_RZ_final_ansicht.pdf", "gliederung": "Art."},
     "UN-KRK":     {"name": "UN-Kinderrechtskonvention", "aliase": ["UN-KRK"], "quelle": "link", "url": "https://www.bmfsfj.de/resource/blob/93140/78b9572c1bffdda3345d8d393acbbfe8/uebereinkommen-ueber-die-rechte-des-kindes-data.pdf", "gliederung": "Art."},

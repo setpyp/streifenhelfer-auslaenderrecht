@@ -37,6 +37,7 @@ UA = {"User-Agent": "Streifenhelfer-Build/1.0 (+offline Rechtsdatenpaket)"}
 # --------------------------------------------------------------------------
 NUM_RE = re.compile(r"(§§?|Art\.)\s*(\d+[a-z]?)((?:\s*(?:ff\.)?\s*,\s*\d+[a-z]?)*)")
 SPLIT_RE = re.compile(r";| i\.V\.m\. | / ")
+ANLAGE_RE = re.compile(r"Anlage\s+([A-Z])\b")
 
 
 def build_alias_index(gesetze):
@@ -70,9 +71,23 @@ def parse_citation(cit, alias_index, gesetze):
             for n in nums:
                 keys.append(f"{law} {gl} {n}")
                 found = True
+        for m in ANLAGE_RE.finditer(seg):
+            keys.append(f"{law} Anlage {m.group(1)}")
+            found = True
         if not found:
             keys.append(law)
     return list(dict.fromkeys(keys))
+
+
+def law_of(key):
+    """'AufenthV § 16' / 'SGK Art. 6' / 'AufenthV Anlage A' / 'EuGH Soysal' -> Gesetzeskürzel"""
+    return re.split(r" (?:§|Art\.|Anlage) ", key)[0]
+
+
+def num_of(key, law):
+    """Teil des Schlüssels nach dem Gesetz: '57', 'Anlage A' oder '' (ganzes Dokument)"""
+    rest = key[len(law):].strip()
+    return rest if rest.startswith("Anlage") or not rest else rest.split(" ", 1)[1]
 
 
 # --------------------------------------------------------------------------
@@ -81,7 +96,7 @@ def parse_citation(cit, alias_index, gesetze):
 HOST_FEHLER = {}  # Host -> Anzahl endgültig fehlgeschlagener Abrufe
 
 
-def get(url, timeout=45, versuche=2):
+def get(url, timeout=45, versuche=2, headers=None):
     """Abruf mit Wiederholung. Ist ein Host bereits zweimal ausgefallen, sofort abbrechen
     (spart bei gesperrtem Host viele Minuten Wartezeit)."""
     host = urllib.parse.urlsplit(url).netloc
@@ -91,7 +106,7 @@ def get(url, timeout=45, versuche=2):
         try:
             if "eur-lex.europa.eu" in host:
                 time.sleep(2)  # höflich abrufen – EUR-Lex sperrt bei zu vielen Anfragen
-            req = urllib.request.Request(url, headers=UA)
+            req = urllib.request.Request(url, headers={**UA, **(headers or {})})
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 body = r.read()
                 # EUR-Lex-Bot-Schutz antwortet mit 202 und leerem Inhalt – das ist KEIN Erfolg
@@ -139,13 +154,18 @@ def load_gii(slug):
         enbez = re.search(r"<enbez>(.*?)</enbez>", block)
         if not enbez:
             continue
+        anlage = re.match(r"\s*Anlage\s+([A-Z])\b", enbez.group(1))
         num = re.search(r"(\d+[a-z]?)", enbez.group(1))
-        if not num or not re.match(r"\s*(§|Art)", enbez.group(1)):
+        if anlage:
+            num_key = f"Anlage {anlage.group(1)}"
+        elif num and re.match(r"\s*(§|Art)", enbez.group(1)):
+            num_key = num.group(1)
+        else:
             continue
         titel = re.search(r"<titel[^>]*>(.*?)</titel>", block, re.S)
         content = re.search(r"<Content>(.*?)</Content>", block, re.S)
         text = strip_tags(content.group(1)) if content else ""
-        normen.setdefault(num.group(1), {
+        normen.setdefault(num_key, {
             "bez": strip_tags(enbez.group(1)),
             "titel": strip_tags(titel.group(1)) if titel else "",
             "text": text,
@@ -158,6 +178,21 @@ def load_gii(slug):
 # --------------------------------------------------------------------------
 # EUR-Lex
 # --------------------------------------------------------------------------
+def eurlex_html(celex):
+    """Dokument-HTML von EUR-Lex; bei Sperre/Ausfall über den Cellar-Dienst des Amts für Veröffentlichungen
+    (gleicher amtlicher Inhalt, anderer Zugang)."""
+    try:
+        return get(f"https://eur-lex.europa.eu/legal-content/DE/TXT/HTML/?uri=CELEX:{celex}")
+    except urllib.error.HTTPError:
+        raise  # 404 o. Ä.: Dokument/Fassung existiert nicht
+    except Exception as e1:
+        try:
+            return get("http://publications.europa.eu/resource/celex/" + urllib.parse.quote(celex, safe=""),
+                       headers={"Accept": "application/xhtml+xml, text/html;q=0.9", "Accept-Language": "deu"})
+        except Exception as e2:
+            raise OSError(f"EUR-Lex: {e1}; Cellar: {e2}")
+
+
 def eurlex_latest_consolidated(celex):
     if not re.match(r"^3\d{4}[RL]\d{4}$", celex):
         return None
@@ -188,16 +223,23 @@ def split_articles_by_text(page):
     return normen
 
 
-def load_eurlex(celex):
-    cons = eurlex_latest_consolidated(celex)
+def load_eurlex(celex, original_erlaubt=False):
+    """original_erlaubt: Ist die Suche nach konsolidierten Fassungen nicht möglich, darf die
+    Amtsblattfassung verwendet werden – nur wenn es noch keine (konsolidierte) Vorfassung gibt."""
+    try:
+        cons = eurlex_latest_consolidated(celex)
+    except Exception:
+        if not original_erlaubt:
+            raise
+        cons = None
     used = cons or celex
     try:
-        page = get(f"https://eur-lex.europa.eu/legal-content/DE/TXT/HTML/?uri=CELEX:{used}").decode("utf-8", "replace")
+        page = eurlex_html(used).decode("utf-8", "replace")
     except urllib.error.HTTPError:
         if not cons:
             raise
         cons, used = None, celex  # angebliche konsolidierte Fassung existiert nicht
-        page = get(f"https://eur-lex.europa.eu/legal-content/DE/TXT/HTML/?uri=CELEX:{used}").decode("utf-8", "replace")
+        page = eurlex_html(used).decode("utf-8", "replace")
     if 'id="art_' not in page:
         return split_articles_by_text(page), {"fassung": used, "konsolidiert": bool(cons)}
     normen = {}
@@ -226,9 +268,15 @@ def load_eurlex(celex):
 QUELLDATEIEN = ["regelwerk.js", "index.html"]  # hier werden Normzitate gesucht
 
 
+def load_sonderregelungen():
+    return json.loads((DATEN / "sonderregelungen.json").read_text("utf-8"))
+
+
 def collect_citations(gesetze, alias_index):
     src = "\n".join((APP / f).read_text("utf-8") for f in QUELLDATEIEN)
     literals = set(re.findall(r'"((?:[^"\\\n]|\\.)*)"', src))
+    for r in load_sonderregelungen()["regeln"]:  # Quellen der Sonderregelungen sind ebenfalls Zitate
+        literals.update(r.get("quellen", []))
     citations = [l for l in literals if find_law(l, alias_index)]
     keys = set()
     for c in citations:
@@ -243,8 +291,8 @@ def pruefen():
     _, keys = collect_citations(gesetze, build_alias_index(gesetze))
     fehler = []
     for k in sorted(keys):
-        law = k.split(" § ")[0].split(" Art. ")[0]
-        if k == law or gesetze[law]["quelle"] == "link":
+        law = law_of(k)
+        if gesetze[law]["quelle"] == "link" or (k == law and gesetze[law]["quelle"] != "eurlex_dok"):
             continue
         n = paket["normen"].get(k)
         if not n:
@@ -268,8 +316,7 @@ def main():
     citations, keys = collect_citations(gesetze, alias_index)
     by_law = {}
     for k in keys:
-        law = k.split(" § ")[0].split(" Art. ")[0] if (" § " in k or " Art. " in k) else k
-        by_law.setdefault(law, set()).add(k)
+        by_law.setdefault(law_of(k), set()).add(k)
     # Kerngesetze vollständig aufnehmen (für Weisungsverweise und Volltextsuche)
     for law, g in gesetze.items():
         if g.get("vollstaendig"):
@@ -297,12 +344,19 @@ def main():
                 if not normen:
                     raise RuntimeError("keine Paragrafen erkannt")
                 meta.update(info)
+            elif g["quelle"] == "eurlex_dok":
+                meta["url"] = f"https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:{g['celex']}"
+                text = strip_tags(eurlex_html(g["celex"]).decode("utf-8", "replace"))
+                if len(text) < 1000:
+                    raise RuntimeError("Dokument ohne Inhalt (Seite geändert oder gesperrt?)")
+                normen = {"": {"bez": g["name"], "titel": g.get("titel", ""), "text": text}}
+                meta["fassung"] = g["celex"]
             elif g["quelle"] == "eurlex":
                 meta["url"] = f"https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:{g['celex']}"
-                normen, info = load_eurlex(g["celex"])
+                alt_fassung = vorher.get("gesetze", {}).get(law, {}).get("fassung") or ""
+                normen, info = load_eurlex(g["celex"], original_erlaubt=not alt_fassung)
                 if not normen:
                     raise RuntimeError("keine Artikel erkannt (Seite geändert oder gesperrt?)")
-                alt_fassung = vorher.get("gesetze", {}).get(law, {}).get("fassung") or ""
                 # bisher konsolidiert -> neue Fassung muss ebenfalls konsolidiert und mindestens gleich neu sein
                 if alt_fassung.startswith("0") and (not info["konsolidiert"] or info["fassung"] < alt_fassung):
                     raise RuntimeError(f"abgerufene Fassung {info['fassung']} ist älter als bisherige {alt_fassung}")
@@ -327,13 +381,21 @@ def main():
 
         wanted = set(by_law[law])
         if g.get("vollstaendig"):
-            wanted |= {f"{law} {g['gliederung']} {n}" for n in normen}
+            wanted |= {f"{law} {n}" if n.startswith("Anlage") else f"{law} {g['gliederung']} {n}" for n in normen}
+        if g["quelle"] == "eurlex_dok":
+            wanted = {law}
         for k in sorted(wanted):
-            if k == law:
+            if k == law and g["quelle"] != "eurlex_dok":
                 continue
-            num = k.rsplit(" ", 1)[1]
+            num = num_of(k, law)
             n = normen.get(num)
-            entry = {"gesetz": law, "nr": num, "bez": f"{g['gliederung']} {num} {law}", "url": meta["url"]}
+            if not num:
+                bez = g["name"]
+            elif num.startswith("Anlage"):
+                bez = f"{num} {law}"
+            else:
+                bez = f"{g['gliederung']} {num} {law}"
+            entry = {"gesetz": law, "nr": num, "bez": bez, "url": meta["url"]}
             if k in by_law[law]:
                 entry["zitiert"] = True  # vom Regelwerk zitiert -> Änderungen sind fachlich zu prüfen
             alt_n = vorher.get("normen", {}).get(k) or {}
@@ -365,6 +427,7 @@ def main():
         "gesetze": out_gesetze,
         "normen": out_normen,
         "laender": laender,
+        "sonderregelungen": load_sonderregelungen(),
         "bericht": report,
     }
     js = json.dumps(paket, ensure_ascii=False, separators=(",", ":"))

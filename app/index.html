@@ -241,6 +241,14 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
 </div>
 </form>
 
+<section class="card" id="sonderCard" style="margin-top:12px">
+  <h2>6 · Sonderstatus / Befreiungen</h2>
+  <div class="hint">Nur auswählen, wenn ein besonderer Status geltend gemacht wird oder erkennbar ist (z. B. Fahrpersonal, Besatzung, Dienstpass, bilaterales Abkommen). Angezeigt werden die Regelungen, die für die gewählte Staatsangehörigkeit in Betracht kommen.</div>
+  <label for="sonder">Regelung</label>
+  <select id="sonder"></select>
+  <div id="sonderInfo"></div>
+</section>
+
 <div id="result" aria-live="polite"></div>
 </main>
 
@@ -337,6 +345,7 @@ function parseCitation(cit){
     for(const m of seg.matchAll(/(§§?|Art\.)\s*(\d+[a-z]?)((?:\s*(?:ff\.)?\s*,\s*\d+[a-z]?)*)/g)){
       for(const n of [m[2], ...(m[3].match(/\d+[a-z]?/g)||[])]){ keys.push(`${law} ${gl} ${n}`); found=true; }
     }
+    for(const m of seg.matchAll(/Anlage\s+([A-Z])\b/g)){ keys.push(`${law} Anlage ${m[1]}`); found=true; }
     if(!found) keys.push(law);
   }
   return [...new Set(keys)];
@@ -350,7 +359,9 @@ function parseCitationDetailed(cit){
     const law=findLaw(seg); if(!law) continue;
     const gl=RD.gesetze[law].gliederung;
     const ms=[...seg.matchAll(/(§§?|Art\.)\s*(\d+[a-z]?)((?:\s*(?:ff\.)?\s*,\s*\d+[a-z]?)*)/g)];
-    if(!ms.length){ out.push({key:law,law,num:null,abs:[],nr:[]}); continue; }
+    const anl=[...seg.matchAll(/Anlage\s+([A-Z])\b/g)];
+    for(const a of anl) out.push({key:`${law} Anlage ${a[1]}`, law, num:`Anlage ${a[1]}`, abs:[], nr:[]});
+    if(!ms.length){ if(!anl.length) out.push({key:law,law,num:null,abs:[],nr:[]}); continue; }
     ms.forEach((m,i)=>{
       const nums=[m[2], ...(m[3].match(/\d+[a-z]?/g)||[])];
       const tail = nums.length===1 ? seg.slice(m.index+m[0].length, i+1<ms.length?ms[i+1].index:undefined) : "";
@@ -461,8 +472,37 @@ function addStay(from="", to=""){
   $("stays").appendChild(div);
 }
 function readStays(){ return [...document.querySelectorAll("#stays .stay")].map(d=>{ const [a,b]=d.querySelectorAll("input"); return {from:toDate(a.value), to:toDate(b.value)}; }); }
+/* ---------- Sonderregelungen ---------- */
+function sonderFuer(nat){
+  const cat=catOf(nat);
+  if(!RD?.sonderregelungen || !nat || ["DE","EU","EUN","EWR","CH"].includes(cat)) return [];
+  const r=RD.sonderregelungen.regeln.filter(x=>x.staaten.includes("*")||x.staaten.includes(nat));
+  return [...r.filter(x=>!x.staaten.includes("*")), ...r.filter(x=>x.staaten.includes("*"))]; // spezifische zuerst
+}
+function buildSonder(){
+  const nat=$("nat").value, liste=sonderFuer(nat), sel=$("sonder"), keep=sel.value;
+  $("sonderCard").classList.toggle("hidden", !liste.length);
+  sel.innerHTML='<option value="">– keine –</option>'+liste.map(r=>`<option value="${esc(r.id)}">${esc(r.titel)}${r.staaten.includes("*")?"":" ★"}</option>`).join("");
+  sel.value = liste.some(r=>r.id===keep) ? keep : "";
+  renderSonderInfo();
+}
+function sonderRegel(){ return RD?.sonderregelungen?.regeln.find(r=>r.id===$("sonder").value) || null; }
+function renderSonderInfo(){
+  const r=sonderRegel(), box=$("sonderInfo");
+  if(!r){ box.innerHTML=""; return; }
+  box.innerHTML = `<div class="item ${r.typ==="befreiung"?"info":"warn"}"><b>${esc(r.typ==="befreiung"?"Rechtsfolge":"Hinweis")}${r.verifiziert?"":'<span class="verify">verifizieren</span>'}</b><div class="txt">${esc(r.rechtsfolge)}</div><div class="txt"><i>Geltungsbereich:</i> ${esc(r.geltungsbereich)}</div>${r.quellen.map(normChip).join("")}</div>`+
+    (r.voraussetzungen.length ? `<div class="checks"><div class="hint">Voraussetzungen – nur abhaken, was festgestellt/belegt ist:</div>${r.voraussetzungen.map((v,i)=>`<label><input type="checkbox" class="sv" data-i="${i}"> ${esc(v)}</label>`).join("")}</div>` : "");
+}
+function sonderSachverhalt(){
+  const r=sonderRegel(); if(!r) return null;
+  const boxes=[...document.querySelectorAll("#sonderInfo .sv")];
+  const offen=r.voraussetzungen.filter((v,i)=>!boxes[i]?.checked);
+  return {regel:r, erfuellt: r.voraussetzungen.length>0 && offen.length===0, offen};
+}
+
 function refresh(){
   const n=$("nat").value, cat = catOf(n);
+  if($("sonder").dataset.nat!==n){ $("sonder").dataset.nat=n; buildSonder(); }
   $("natHint").textContent = n ? (CAT_LABEL[cat] + (NOTES[n] ? " · " + NOTES[n] : "")) : "";
   const age = parseInt($("age").value,10);
   $("accWrap").classList.toggle("hidden", !(age < 18));
@@ -492,7 +532,9 @@ function collect(){
     identityUnclear:$("identityUnclear").checked,
     // Freitext ohne Einfluss auf die Bewertung, nur für Anzeige und Vermerk
     beschaeftigung: $("working").checked ? $("workDetails").value.trim() : "",
-    bemerkung: $("remarks").value.trim()
+    bemerkung: $("remarks").value.trim(),
+    sonder: sonderSachverhalt(),
+    sonderVerfuegbar: sonderFuer($("nat").value).map(r=>r.id)
   };
 }
 
@@ -536,7 +578,7 @@ function weisungHTML(w){
 }
 function normHTML(key){
   const n = RD.normen[key];
-  const law = key.split(/ (?:§|Art\.) /)[0]; const g = RD.gesetze[law] || {};
+  const law = key.split(/ (?:§|Art\.|Anlage) /)[0]; const g = RD.gesetze[law] || {};
   const head = n ? `${esc(n.bez)}${n.titel?" – "+esc(n.titel):""}` : esc(key);
   const stand = g.fassung ? `Fassung ${esc(g.fassung)}${g.konsolidiert?" (konsolidiert)":""}` : (g.abrufdatum ? `Stand gesetze-im-internet.de: ${esc(g.abrufdatum.replace(/(\d{4})(\d\d)(\d\d)/,"$3.$2.$1"))}` : "");
   return `<h4 style="margin:12px 0 2px">${head}${n?.weggefallen?' <span class="verify">weggefallen</span>':""}</h4>
@@ -624,6 +666,7 @@ function vermerk(){
   L.push("Staatsangehörigkeit: "+(s.nat||"–")+(s.age!==null?" · Alter: "+s.age:""));
   L.push("Dokument: "+$("iddoc").selectedOptions[0].text+" · Titel: "+$("title").selectedOptions[0].text+(s.validUntil?" (gültig bis "+fmt(s.validUntil)+")":""));
   if(s.days!==null) L.push("Aufenthaltstage im 180-Tage-Zeitraum: "+s.days);
+  if(s.sonder) L.push("Sonderstatus: "+s.sonder.regel.titel+(s.sonder.regel.typ==="befreiung"?(s.sonder.erfuellt?" – Voraussetzungen bestätigt":" – nicht bestätigt: "+s.sonder.offen.join("; ")):""));
   if(s.beschaeftigung) L.push("", "ANGABEN ZUR BESCHÄFTIGUNG", s.beschaeftigung);
   if(s.bemerkung) L.push("", "BEMERKUNGEN", s.bemerkung);
   L.push("", "ERGEBNIS: "+R.head, R.sub);
@@ -658,7 +701,8 @@ document.querySelectorAll("#f select, #f input").forEach(el=>el.addEventListener
 $("age").addEventListener("input",refresh);
 $("addStay").onclick=()=>addStay();
 $("evalBtn").onclick=()=>render();
-$("resetBtn").onclick=()=>{ $("f").reset(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
+$("sonder").addEventListener("change",renderSonderInfo);
+$("resetBtn").onclick=()=>{ $("f").reset(); $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
 $("copyBtn").onclick=async()=>{ const t=vermerk(); try{ await navigator.clipboard.writeText(t); $("copyBtn").textContent="Kopiert ✓"; }catch(e){ prompt("Vermerk:",t); } setTimeout(()=>$("copyBtn").textContent="Vermerk kopieren",1500); };
 $("themeBtn").onclick=()=>{ const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark?"light":"dark"; };
 document.addEventListener("click",e=>{
