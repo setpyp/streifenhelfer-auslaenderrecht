@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write        # zum Auslösen der CI für den Bot-PR
 
 concurrency:
   group: rechtsdaten-update
@@ -85,6 +86,8 @@ jobs:
               --title "Rechtsdaten-Update $(date -u +%Y-%m-%d) – fachliche Prüfung erforderlich" \
               --body-file /tmp/pr.md
           fi
+          # Pflicht-Check "test" für den Bot-PR ausführen (PRs mit GITHUB_TOKEN lösen keine CI aus)
+          gh workflow run ci.yml --ref "$BRANCH"
 
       - name: Quellausfall melden
         if: steps.build.outputs.exit == '2'

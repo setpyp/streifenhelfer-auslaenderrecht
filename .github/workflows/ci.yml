@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:   # vom Rechtsdaten-Workflow ausgelöst (Bot-PRs starten keine CI von selbst)
 
 permissions:
   contents: read
