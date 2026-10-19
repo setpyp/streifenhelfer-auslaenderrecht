@@ -6,3 +6,5 @@ app/streifenhelfer-offline.html
 # Echte Weisungen niemals einchecken – nur das Muster
 weisungen/
 *.weisungen.json
+# lokale Werkzeug-Einstellungen
+.claude/

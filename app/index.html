@@ -47,7 +47,9 @@ select{max-width:100%;text-overflow:ellipsis}
 section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 section.card h2{font-size:15px;margin:0 0 8px;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
 label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-select,input[type=date],input[type=number],input[type=text],input[type=url],input[type=search]{width:100%;font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px}
+select,textarea,input[type=date],input[type=number],input[type=text],input[type=url],input[type=search]{width:100%;font-size:16px;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px}
+textarea{font-family:inherit;line-height:1.4;resize:vertical}
+.remark{white-space:pre-wrap;font-size:14px;margin:4px 0 8px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .checks label{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:15px;margin:8px 0}
 .checks input{width:22px;height:22px;flex:none;margin-top:1px}
@@ -227,6 +229,13 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
     <label><input type="checkbox" id="nomeans"> Keine ausreichenden Mittel zur Bestreitung des Lebensunterhalts / Rückreise</label>
     <label><input type="checkbox" id="identityUnclear"> Identität zweifelhaft / widersprüchliche Angaben</label>
   </div>
+  <div id="workWrap" class="hidden">
+    <label for="workDetails">Angaben zur Beschäftigung</label>
+    <textarea id="workDetails" rows="3" maxlength="2000" placeholder="z. B. Arbeitgeber, Tätigkeit, Arbeitsort, seit wann, Entlohnung, vorgelegte Arbeitserlaubnis"></textarea>
+  </div>
+  <label for="remarks">Bemerkungen</label>
+  <textarea id="remarks" rows="4" maxlength="4000" placeholder="z. B. Angaben der Person, Reiseweg, mitgeführte Gegenstände, Zeugen, Besonderheiten der Kontrolle"></textarea>
+  <div class="hint">Freitext erscheint in der Bewertung und im Vermerk, wird aber nicht gespeichert. „Neu / Löschen“ leert ihn.</div>
 </section>
 
 </div>
@@ -462,6 +471,7 @@ function refresh(){
   $("visaDaysWrap").classList.toggle("hidden", !["visa_c","visa_ltv"].includes(t));
   $("ltvWrap").classList.toggle("hidden", t!=="visa_ltv");
   $("restrictWrap").classList.toggle("hidden", !["gestattung","duldung"].includes(t));
+  $("workWrap").classList.toggle("hidden", !$("working").checked);
   const st=readStays(), d = daysIn180(st, toDate($("date").value));
   $("calcDays").value = st.every(s=>!s.from) ? "" : d + " Tage";
 }
@@ -479,7 +489,10 @@ function collect(){
     days: manual!==null ? manual : calc, entryDE: toDate($("entryDE").value),
     asylum:$("asylum").checked, sisRefusal:$("sisRefusal").checked, warrant:$("warrant").checked,
     working:$("working").checked, smuggling:$("smuggling").checked, nomeans:$("nomeans").checked,
-    identityUnclear:$("identityUnclear").checked
+    identityUnclear:$("identityUnclear").checked,
+    // Freitext ohne Einfluss auf die Bewertung, nur für Anzeige und Vermerk
+    beschaeftigung: $("working").checked ? $("workDetails").value.trim() : "",
+    bemerkung: $("remarks").value.trim()
   };
 }
 
@@ -495,11 +508,18 @@ function itemHTML(i){
   return `<div class="item ${i.lvl}"><b>${esc(i.t)}${i.v?'<span class="verify" title="Rechtslage/Weisungslage aktuell verifizieren">verifizieren</span>':''}${wn?`<span class="wbadge">${wn} Weisung${wn>1?"en":""}</span>`:''}</b><div class="txt">${esc(i.txt)}</div>${i.n.map(normChip).join("")}</div>`;
 }
 function block(title, arr){ return arr.length ? `<div class="block"><h4>${title}</h4>${arr.map(itemHTML).join("")}</div>` : ""; }
+function remarksHTML(s){
+  if(!s.beschaeftigung && !s.bemerkung) return "";
+  return `<div class="block"><h4>Bemerkungen</h4>`+
+    (s.beschaeftigung?`<b>Angaben zur Beschäftigung</b><div class="remark">${esc(s.beschaeftigung)}</div>`:"")+
+    (s.bemerkung?`${s.beschaeftigung?"<b>Weitere Bemerkungen</b>":""}<div class="remark">${esc(s.bemerkung)}</div>`:"")+`</div>`;
+}
 let lastR=null, lastS=null;
 function render(scroll=true){
   const s = collect(); const R = evaluate(s); lastR=R; lastS=s;
   $("result").innerHTML =
     `<div class="status ${R.level}"><h3>${esc(R.head)}</h3><p>${esc(R.sub)}</p></div>`+
+    remarksHTML(s)+
     block("Feststellungen",R.find)+block("Maßnahmen",R.meas)+block("Straf- und Bußgeldrecht",R.crim)+
     block("Benachrichtigungen",R.notify)+block("Hinweise",R.notes)+
     (R.path.length?`<div class="block"><h4>Prüfpfad</h4><ol class="path">${R.path.map(p=>`<li>${esc(p)}</li>`).join("")}</ol></div>`:"");
@@ -598,12 +618,14 @@ function initData(){ if(window.STREIFENHELFER_EINZELDATEI || !location.protocol.
    Start
    ===================================================================== */
 function vermerk(){
-  if(!lastR) render(false);
+  render(false);
   const s=lastS,R=lastR, L=[];
   L.push("STREIFENHELFER – Bewertung (Entscheidungshilfe, nicht verbindlich)", $("normstand").textContent, "Kontrolldatum: "+fmt(s.date)+" · Ort: "+$("place").selectedOptions[0].text);
   L.push("Staatsangehörigkeit: "+(s.nat||"–")+(s.age!==null?" · Alter: "+s.age:""));
   L.push("Dokument: "+$("iddoc").selectedOptions[0].text+" · Titel: "+$("title").selectedOptions[0].text+(s.validUntil?" (gültig bis "+fmt(s.validUntil)+")":""));
   if(s.days!==null) L.push("Aufenthaltstage im 180-Tage-Zeitraum: "+s.days);
+  if(s.beschaeftigung) L.push("", "ANGABEN ZUR BESCHÄFTIGUNG", s.beschaeftigung);
+  if(s.bemerkung) L.push("", "BEMERKUNGEN", s.bemerkung);
   L.push("", "ERGEBNIS: "+R.head, R.sub);
   const sec=(t,a)=>{ if(a.length){ L.push("", t.toUpperCase()); a.forEach(i=>L.push("- "+i.t+" ["+i.n.join("; ")+"]")); } };
   sec("Feststellungen",R.find); sec("Maßnahmen",R.meas); sec("Straf-/Bußgeldrecht",R.crim); sec("Benachrichtigungen",R.notify);
