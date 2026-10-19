@@ -13,6 +13,7 @@ vm.runInContext(read("app/regelwerk.js"), ctx, { filename: "regelwerk.js" });
 const evaluate = vm.runInContext("evaluate", ctx);
 
 const laender = JSON.parse(read("daten/laender.json")).kategorien;
+const sonder = JSON.parse(read("daten/sonderregelungen.json")).regeln;
 const catOf = name => Object.entries(laender).find(([, l]) => l.includes(name))?.[0] ?? "X";
 const toDate = v => (v ? new Date(v + "T00:00:00") : null);
 
@@ -27,6 +28,15 @@ for (const f of faelle) {
   const s = { ...standard, ...f.eingabe };
   for (const k of ["date", "validUntil", "entryDE"]) s[k] = toDate(s[k]);
   s.cat = catOf(s.nat);
+  // Sonderregelungen wie in der App: verfügbare Regeln je Staatsangehörigkeit, gewählte Regel mit Voraussetzungen
+  s.sonderVerfuegbar = ["DE", "EU", "EUN", "EWR", "CH"].includes(s.cat) || !s.nat ? []
+    : sonder.filter(x => x.staaten.includes("*") || x.staaten.includes(s.nat)).map(x => x.id);
+  if (f.eingabe.sonder) {
+    const regel = sonder.find(x => x.id === f.eingabe.sonder.id);
+    if (!regel) throw new Error(`Sonderregelung ${f.eingabe.sonder.id} unbekannt`);
+    const ok = !!f.eingabe.sonder.erfuellt;
+    s.sonder = { regel, erfuellt: ok && regel.voraussetzungen.length > 0, offen: ok ? [] : regel.voraussetzungen.slice(0, 1) };
+  } else s.sonder = null;
   const R = evaluate(s);
   const errs = [];
   const e = f.erwartet;

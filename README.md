@@ -10,6 +10,7 @@ Offlinefähige Entscheidungshilfe zur aufenthaltsrechtlichen Bewertung bei Kontr
 | `app/` | auszuliefernde Web-App (PWA): `index.html` (Oberfläche + Regelwerk), `rechtsdaten.js/.json` (erzeugt), `sw.js` (Offline-Cache) |
 | `daten/gesetze.json` | Katalog der öffentlichen Rechtsquellen (Quelle, Aliase, ob vollständig aufzunehmen) |
 | `daten/laender.json` | Staaten nach Visumkategorie (VO (EU) 2018/1806) mit Hinweisen |
+| `daten/sonderregelungen.json` | Befreiungen außerhalb der Visumliste: AufenthV §§ 16–30 (inkl. Anlage A), Assoziationsrecht EWG–Türkei, Hinweise auf bilaterale Abkommen/Ausnahmen anderer Mitgliedstaaten – je Regel Voraussetzungen, Rechtsfolge, Geltungsbereich, Quellen |
 | `tools/build_rechtsdaten.py` | erzeugt das Rechtsdatenpaket aus amtlichen Quellen und prüft die Zitate |
 | `weisungen-muster/` | Muster für interne Weisungspakete |
 | `WEISUNGEN-FORMAT.md` | Format und Serveranforderungen für interne Weisungen |
@@ -20,8 +21,10 @@ Offlinefähige Entscheidungshilfe zur aufenthaltsrechtlichen Bewertung bei Kontr
 python tools/build_rechtsdaten.py
 ```
 
-- Lädt die zitierten Normen (und Kerngesetze vollständig) von gesetze-im-internet.de und
-  EUR-Lex (neueste konsolidierte Fassung).
+- Lädt die zitierten Normen (und Kerngesetze vollständig, inkl. Anlagen) von gesetze-im-internet.de und
+  EUR-Lex (neueste konsolidierte Fassung); ist EUR-Lex gesperrt, über den Cellar-Dienst des Amts für
+  Veröffentlichungen. Zusätzlich ganze Dokumente: EuGH-Urteile (Soysal, Demirkan), Liste der bilateralen
+  Visumbefreiungsabkommen der Mitgliedstaaten (ABl. C 130/2019), nationale Ausnahmen nach Art. 6 VO 2018/1806 (ABl. C 340/2023).
 - Prüft jedes Zitat im Regelwerk: **Exit-Code 1**, wenn eine zitierte Norm weggefallen oder
   nicht auffindbar ist. Dann vor der Auslieferung das Regelwerk anpassen.
 - Setzt die Cache-Version im Service Worker, damit Geräte das neue Paket laden.

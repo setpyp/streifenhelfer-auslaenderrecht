@@ -85,8 +85,21 @@ function evaluate(s){
     F("bad","Visumfreiheit nur mit biometrischem Pass","Mit nicht-biometrischem Pass besteht Visumpflicht.",["Anhang II 2018/1806"]);
   }
 
+  /* -- Sonderregelungen (daten/sonderregelungen.json): Befreiungen außerhalb der Visumliste -- */
+  const SR = s.sonder ? s.sonder.regel : null;
+  const sonderOK = !!(SR && SR.typ==="befreiung" && s.sonder.erfuellt);
+  if(SR && SR.typ==="hinweis") H(SR.titel, SR.rechtsfolge+(SR.hinweise?" "+SR.hinweise:""), SR.quellen, !SR.verifiziert);
+  if(SR && SR.typ==="befreiung" && !sonderOK)
+    F("warn","Befreiung nicht anwendbar: "+SR.titel,"Voraussetzungen nicht (vollständig) bestätigt: "+(s.sonder.offen||[]).join("; ")+". Bewertung nach allgemeinen Regeln.",SR.quellen,!SR.verifiziert);
+
   /* -- Aufenthaltsgrundlage -- */
-  switch(s.title){
+  if(sonderOK){
+    basis="Befreiung: "+SR.titel; lawful = passOK;
+    F(lawful?"ok":"bad","Befreiung: "+SR.titel, SR.rechtsfolge+(lawful?"":" Passpflicht ist dennoch zu erfüllen."), SR.quellen, !SR.verifiziert);
+    H("Geltungsbereich der Befreiung", SR.geltungsbereich, SR.quellen, !SR.verifiziert);
+    if(SR.hinweise) H("Hinweise zur Befreiung", SR.hinweise, SR.quellen, !SR.verifiziert);
+    P("Sonderregelung „"+SR.titel+"“: alle Voraussetzungen bestätigt.");
+  } else switch(s.title){
     case "at_de":
       basis="Deutscher Aufenthaltstitel"; lawful = validTitle;
       if(lawful) F("ok","Gültiger deutscher Aufenthaltstitel","Aufenthalt rechtmäßig. Nebenbestimmungen (Erwerbstätigkeit, Wohnsitzauflage) prüfen.",["§ 4 Abs. 1 AufenthG","§ 4a AufenthG","§ 12 AufenthG","§ 12a AufenthG"]);
@@ -157,7 +170,7 @@ function evaluate(s){
       } else if(visaFree){
         basis="Visumfreier Kurzaufenthalt";
         if(dayOK===false){ lawful=false; F("bad","90/180-Tage überschritten (Overstay)",`${s.days} Tage im Bezugszeitraum.`,["Art. 6 Abs. 1 SGK","Art. 20 SDÜ","Art. 4 2018/1806"]);
-          H("Ältere Sichtvermerksabkommen","Inhaber der in Anlage A AufenthV genannten Dokumente können auch über 90 Tage hinaus befreit sein (vgl. Art. 20 Abs. 2 SDÜ).",["§ 16 AufenthV","Art. 20 SDÜ"]); }
+          if((s.sonderVerfuegbar||[]).includes("anlage-a-sichtvermerk")) H("Ältere Sichtvermerksabkommen","Für diese Staatsangehörigkeit besteht ein älteres Sichtvermerksabkommen (Anlage A AufenthV), das längere Aufenthalte in Deutschland erlauben kann – unter „Sonderstatus“ prüfen.",["§ 16 AufenthV","AufenthV Anlage A","Art. 20 SDÜ"]); }
         else { lawful = passOK ? (dayOK===null?null:true) : false;
           F(lawful===false?"bad":(lawful?"ok":"warn"),"Visumfreier Kurzaufenthalt","Bis 90 Tage je 180 Tage; Einreisevoraussetzungen Art. 6 SGK (Zweck, Mittel, keine Ausschreibung). Nach Inbetriebnahme von ETIAS zusätzlich gültige Reisegenehmigung erforderlich.",["Art. 4 2018/1806","Art. 6 SGK","Art. 20 SDÜ","§ 15 AufenthV","ETIAS-VO"],true);
           if(dayOK===null) H("Aufenthaltsdauer unbekannt","Ein-/Ausreisestempel bzw. EES-Abfrage zur Berechnung heranziehen.",["Art. 6 Abs. 2 SGK","EES-VO"]);
@@ -171,7 +184,7 @@ function evaluate(s){
   if(!passOK && s.title!=="gestattung" && s.title!=="duldung" && lawful===true){ lawful=false; P("Ohne gültigen Pass → Einreise-/Aufenthaltsvoraussetzungen nicht erfüllt."); }
 
   /* Erwerbstätigkeit */
-  if(s.working && ["visa_c","visa_ltv","at_other","visa_d_other","none"].includes(s.title) && !s.eufam){
+  if(s.working && ["visa_c","visa_ltv","at_other","visa_d_other","none"].includes(s.title) && !s.eufam && !(sonderOK && SR.erwerbstaetigkeit_erlaubt)){
     F("bad","Unerlaubte Erwerbstätigkeit möglich","Kurzaufenthalt/Visum berechtigt grds. nicht zur Erwerbstätigkeit; Ausnahmen § 17 Abs. 2, 3 AufenthV i.V.m. § 30 BeschV prüfen.",["§ 4a Abs. 1, 5 AufenthG","§ 17 AufenthV","§ 30 BeschV"]);
     if(s.title==="visa_c"||s.title==="visa_ltv") C("bad","Unerlaubte Beschäftigung mit Schengen-Visum","Vorsätzliche Begehung ist Straftat.",["§ 95 Abs. 1a AufenthG","§ 404 Abs. 2 Nr. 4 SGB III"]);
     else C("warn","Unerlaubte Beschäftigung / selbständige Tätigkeit","Beschäftigung: OWi nach SGB III; selbständige Tätigkeit: OWi nach AufenthG.",["§ 404 Abs. 2 Nr. 4 SGB III","§ 98 Abs. 3 Nr. 1 AufenthG"]);
@@ -214,6 +227,7 @@ function evaluate(s){
   /* ================= Status ================= */
   if(!s.asylum){
     if(s.title==="duldung"){ R.level="warn"; R.head="Geduldet – ausreisepflichtig"; R.sub="Abschiebung vorübergehend ausgesetzt."; }
+    else if(lawful===true && sonderOK && !SR.verifiziert){ R.level="warn"; R.head="Voraussichtlich rechtmäßig – Befreiung prüfen"; R.sub=basis+". Die Befreiung beruht auf Rechtsprechung/Verwaltungspraxis – aktuelle Weisungslage und Nachweise prüfen."; }
     else if(lawful===true){ R.level="ok"; R.head="Rechtmäßiger Aufenthalt"; R.sub=basis+". Einreise-/Aufenthaltsvoraussetzungen nach Aktenlage erfüllt."; }
     else if(lawful===null){ R.level="warn"; R.head="Status ungeklärt – weitere Prüfung"; R.sub=basis+". Fehlende Angaben (Aufenthaltsdauer, Gültigkeit, Antrag) klären."; }
     else if(isExit){ R.level="warn"; R.head="Unerlaubter Aufenthalt – Ausreise"; R.sub="Ausreise erfüllt die Ausreisepflicht; Verstöße dokumentieren."; }

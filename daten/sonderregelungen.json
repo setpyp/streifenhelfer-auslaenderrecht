@@ -1,0 +1,182 @@
+{
+  "_hinweis": "Befreiungen und Sonderregelungen außerhalb der allgemeinen Visumliste (nationales Recht, Assoziationsrecht, bilaterale Abkommen). typ 'befreiung' wirkt auf die Bewertung, typ 'hinweis' nur informativ. 'staaten': Liste von Staatsangehörigkeiten oder ['*'] für alle Drittstaatsangehörigen. 'verifiziert': true nur, wenn die Regel unmittelbar aus einem amtlichen Gesetzestext folgt; sonst zeigt die App 'verifizieren'. Änderungen nur mit Quelle und fachlicher Prüfung.",
+  "stand": "2026-10",
+  "regeln": [
+    {
+      "id": "tr-fahrpersonal",
+      "typ": "befreiung",
+      "titel": "Türkisches Fahrpersonal im grenzüberschreitenden Verkehr (Assoziationsrecht EWG–Türkei)",
+      "staaten": ["Türkei"],
+      "voraussetzungen": [
+        "Arbeitnehmer (angestelltes Fahrpersonal) eines Unternehmens mit Sitz in der Türkei",
+        "grenzüberschreitende Beförderung von Gütern oder Personen in Deutschland",
+        "Aufenthalt im Bundesgebiet nicht länger als zwei Monate",
+        "Beförderung rechtmäßig: Fahrzeug im Ausland zugelassen bzw. Fahrerbescheinigung vorhanden; keine Anhaltspunkte für unerlaubte Arbeitnehmerüberlassung"
+      ],
+      "rechtsfolge": "Für Einreise und Aufenthalt in Deutschland zur Erbringung der Beförderungsleistung kein Visum erforderlich (Stillhalteklausel: Visumpflicht bestand bei Inkrafttreten des Zusatzprotokolls am 01.01.1973 nicht).",
+      "geltungsbereich": "Einreise und Aufenthalt in Deutschland. Die Stillhalteklausel wirkt je Mitgliedstaat nach dessen Rechtslage bei Inkrafttreten des Zusatzprotokolls (für Deutschland 01.01.1973) – für Durchreise durch andere Schengen-Staaten gilt deren Recht (häufig Schengen-Visum erforderlich). Ein unrechtmäßiger Voraufenthalt in einem anderen Schengen-Staat ist gesondert zu bewerten.",
+      "erwerbstaetigkeit_erlaubt": true,
+      "hinweise": "Keine Visumfreiheit für Dienstleistungsempfänger (Touristen, Besuche) – EuGH Demirkan. Selbständige Dienstleister nur, soweit 1973 kein Visum verlangt wurde – BVerwG 1 C 9.14. Umsetzung durch BMI-Erlass 2009 (Arbeitnehmer eines Arbeitgebers mit Sitz in der Türkei, höchstens zwei Monate, rechtmäßige Transportleistung); aktuelle Weisungslage prüfen.",
+      "quellen": ["Art. 41 ZP EWG-TR", "EuGH Soysal", "EuGH Demirkan", "BVerwG 1 C 9.14", "Art. 5 1072/2009"],
+      "verifiziert": false
+    },
+    {
+      "id": "anlage-a-sichtvermerk",
+      "typ": "befreiung",
+      "titel": "Ältere Sichtvermerksabkommen (Anlage A Nr. 1 AufenthV)",
+      "staaten": ["Australien", "Brasilien", "Chile", "El Salvador", "Honduras", "Japan", "Kanada", "Südkorea", "Monaco", "Neuseeland", "Panama", "San Marino"],
+      "voraussetzungen": [
+        "Nationalpass bzw. im Abkommen genanntes Reisedokument des Abkommensstaats",
+        "Dauer und Zweck des Aufenthalts sind vom jeweiligen Abkommen gedeckt (Fundstelle in Anlage A AufenthV prüfen)"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise und Aufenthalt in Deutschland, auch bei Überschreitung der zeitlichen Grenze eines Kurzaufenthalts (90/180), soweit das vor dem 01.09.1993 geschlossene Abkommen dies vorsieht.",
+      "geltungsbereich": "Nur Deutschland (Art. 20 Abs. 2 SDÜ). In anderen Schengen-Staaten gilt die 90/180-Regel bzw. deren eigenes Abkommen.",
+      "erwerbstaetigkeit_erlaubt": false,
+      "hinweise": "Inhalt der einzelnen Abkommen (Höchstdauer, Erwerbstätigkeit) ist unterschiedlich – Fundstelle in Anlage A.",
+      "quellen": ["§ 16 AufenthV", "AufenthV Anlage A", "Art. 20 SDÜ"],
+      "verifiziert": true
+    },
+    {
+      "id": "fluechtlings-reiseausweis",
+      "typ": "befreiung",
+      "titel": "Reiseausweis für Flüchtlinge oder Staatenlose (§ 18 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Reiseausweis für Flüchtlinge oder Staatenlose eines EU-/EWR-Staats, der Schweiz oder eines Anhang-II-Staats",
+        "Rückkehrberechtigung bei Einreise noch mindestens vier Monate gültig (entfällt bei Ausstellung durch einen Staat nach Anlage A Nr. 3)",
+        "Kurzaufenthalt (90/180) eingehalten",
+        "keine Erwerbstätigkeit (außer § 17 Abs. 2 AufenthV)"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise und Kurzaufenthalt.",
+      "geltungsbereich": "Deutschland.",
+      "erwerbstaetigkeit_erlaubt": false,
+      "quellen": ["§ 18 AufenthV", "AufenthV Anlage A"],
+      "verifiziert": true
+    },
+    {
+      "id": "dienstpass",
+      "typ": "befreiung",
+      "titel": "Dienstlicher Pass eines Staates nach Anlage B AufenthV (§ 19 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "dienstlicher Pass eines in Anlage B aufgeführten Staates (Passart laut Anlage B)",
+        "Kurzaufenthalt (90/180) eingehalten",
+        "keine Erwerbstätigkeit (außer § 17 Abs. 2 AufenthV)"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise und Kurzaufenthalt.",
+      "geltungsbereich": "Deutschland. Andere Schengen-Staaten haben eigene Ausnahmen (Mitteilung der Kommission zu Art. 6 VO 2018/1806).",
+      "erwerbstaetigkeit_erlaubt": false,
+      "quellen": ["§ 19 AufenthV", "AufenthV Anlage B", "Art. 6 2018/1806"],
+      "verifiziert": true
+    },
+    {
+      "id": "flugpersonal",
+      "typ": "befreiung",
+      "titel": "Ziviles Flugpersonal (§ 23 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Flugbesatzungsausweis (oder Passierschein der Grenzbehörde)",
+        "Aufenthalt nur auf dem Flughafen, in einer nahe gelegenen Gemeinde oder beim Wechsel zu einem anderen Flughafen"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels im genannten räumlichen Umfang.",
+      "geltungsbereich": "Deutschland, räumlich beschränkt.",
+      "erwerbstaetigkeit_erlaubt": true,
+      "quellen": ["§ 23 AufenthV"],
+      "verifiziert": true
+    },
+    {
+      "id": "seeleute",
+      "typ": "befreiung",
+      "titel": "Seelotsen und Schiffspersonal (§ 24 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Seelotse mit amtlichen Papieren ODER Besatzungsmitglied auf der Besatzungsliste mit Passierschein der Grenzbehörde",
+        "Aufenthalt im Hafenort während der Liegezeit des Schiffes (bei Schiffspersonal)"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels im genannten Umfang.",
+      "geltungsbereich": "Deutschland, räumlich und zeitlich beschränkt.",
+      "erwerbstaetigkeit_erlaubt": true,
+      "quellen": ["§ 24 AufenthV"],
+      "verifiziert": true
+    },
+    {
+      "id": "binnenschifffahrt",
+      "typ": "befreiung",
+      "titel": "Internationale Binnenschifffahrt (§ 25 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "tätig auf einem Schiff eines Unternehmens mit Sitz in einem Schengen-Staat (Abs. 1) bzw. in der Donauschifffahrt (Abs. 2)",
+        "Aufenthaltstitel des Sitzstaats, der die Tätigkeit erlaubt (Abs. 1) bzw. Binnenschifffahrtsausweis (Abs. 2)",
+        "in der Besatzungsliste eingetragen",
+        "Höchstdauer eingehalten (6 Monate bzw. 90 Tage innerhalb von 12 Monaten) und Aufenthalt an Bord, im Liegehafen/nahe Gemeinde oder auf dem kürzesten Weg"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels im genannten Umfang.",
+      "geltungsbereich": "Deutschland, räumlich beschränkt.",
+      "erwerbstaetigkeit_erlaubt": true,
+      "quellen": ["§ 25 AufenthV"],
+      "verifiziert": true
+    },
+    {
+      "id": "schuelerliste",
+      "typ": "befreiung",
+      "titel": "Schüler auf Sammelliste (§ 22 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Mitglied einer Schülergruppe in Begleitung einer Lehrkraft",
+        "Wohnsitz in EU/EWR, Schweiz oder Anhang-II-Staat",
+        "in einer Sammelliste nach dem Ratsbeschluss vom 30.11.1994 eingetragen",
+        "keine Erwerbstätigkeit; Kurzaufenthalt"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise, Durchreise und Kurzaufenthalt.",
+      "geltungsbereich": "Deutschland.",
+      "erwerbstaetigkeit_erlaubt": false,
+      "quellen": ["§ 22 AufenthV"],
+      "verifiziert": true
+    },
+    {
+      "id": "daueraufenthalt-eu-dienstleistung",
+      "typ": "befreiung",
+      "titel": "Langfristig Aufenthaltsberechtigte eines anderen EU-Staats zur Dienstleistung (§ 17a AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Rechtsstellung eines langfristig Aufenthaltsberechtigten in einem anderen EU-Mitgliedstaat",
+        "Beschäftigung nach § 30 Nr. 3 BeschV (Entsendung zur Dienstleistung)",
+        "höchstens 90 Tage innerhalb von zwölf Monaten"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise und Aufenthalt zu diesem Zweck.",
+      "geltungsbereich": "Deutschland.",
+      "erwerbstaetigkeit_erlaubt": true,
+      "quellen": ["§ 17a AufenthV", "§ 30 BeschV"],
+      "verifiziert": true
+    },
+    {
+      "id": "durchbefoerderung",
+      "typ": "befreiung",
+      "titel": "Durchreise/Durchbeförderung auf Grund zwischenstaatlicher Vereinbarung (§ 30 AufenthV)",
+      "staaten": ["*"],
+      "voraussetzungen": [
+        "Einreise aus einem anderen Schengen-Staat",
+        "Durchreise bzw. Durchbeförderung auf Grund zwischenstaatlicher Vereinbarung oder mit Einwilligung des BMI",
+        "Aufenthalt nicht länger als drei Tage"
+      ],
+      "rechtsfolge": "Befreiung vom Erfordernis eines Aufenthaltstitels für Einreise und bis zu drei Tage Aufenthalt (auch für begleitende Aufsichtspersonen).",
+      "geltungsbereich": "Deutschland.",
+      "erwerbstaetigkeit_erlaubt": false,
+      "quellen": ["§ 30 AufenthV"],
+      "verifiziert": true
+    },
+    {
+      "id": "bilaterale-abkommen-anderer-staaten",
+      "typ": "hinweis",
+      "titel": "Bilaterale Abkommen und nationale Ausnahmen anderer Schengen-/EU-Staaten",
+      "staaten": ["*"],
+      "voraussetzungen": [],
+      "rechtsfolge": "Andere Mitgliedstaaten können durch ältere bilaterale Abkommen längere Aufenthalte in IHREM Hoheitsgebiet erlauben (Art. 20 Abs. 2 SDÜ) und eigene Ausnahmen von der Visumpflicht vorsehen (Art. 6 VO 2018/1806). Diese wirken grundsätzlich nur im jeweiligen Staat, nicht für Einreise und Aufenthalt in Deutschland. Sie können aber erklären, warum ein längerer oder visumfreier Voraufenthalt in einem anderen Staat rechtmäßig war.",
+      "geltungsbereich": "Nur im Hoheitsgebiet des jeweiligen Abkommensstaats.",
+      "erwerbstaetigkeit_erlaubt": false,
+      "hinweise": "Die Liste der bilateralen Abkommen (ABl. C 130/2019) ist der letzte veröffentlichte Stand – Aktualität prüfen.",
+      "quellen": ["Art. 20 SDÜ", "2019/C 130/07", "Art. 6 2018/1806", "2023/C 340"],
+      "verifiziert": false
+    }
+  ]
+}
