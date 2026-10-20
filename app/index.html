@@ -500,6 +500,29 @@ function sonderSachverhalt(){
   return {regel:r, erfuellt: r.voraussetzungen.length>0 && offen.length===0, offen};
 }
 
+/* ---------- Übernahme eines per Sprache erfassten Falls (Raspberry Pi, ?quelle=pi) ---------- */
+function fallUebernehmen(f){
+  const wert={nat:f.nat, age:f.age??"", acc:f.unaccompanied?"no":"yes", date:f.date, place:f.place, from:f.from, purpose:f.purpose,
+    iddoc:f.iddoc, title:f.title, validUntil:f.validUntil||"", visaDays:f.visaDays??"", manualDays:f.days??"", entryDE:f.entryDE||"",
+    workDetails:f.beschaeftigung||"", remarks:f.bemerkung||""};
+  for(const [id,v] of Object.entries(wert)) $(id).value=v;
+  for(const id of ["eufam","nearEntry","ltvDE","restrictViol","restrictRepeat","asylum","sisRefusal","warrant","working","smuggling","nomeans","identityUnclear"]) $(id).checked=!!f[id];
+  refresh();
+  if(f.sonder){
+    $("sonder").value=f.sonder.id; renderSonderInfo();
+    const r=sonderRegel();
+    document.querySelectorAll("#sonderInfo .sv").forEach((b,i)=>{ b.checked=!!r && !f.sonder.offen.includes(r.voraussetzungen[i]); });
+  }
+  render();
+}
+async function fallVomPi(){
+  try{
+    const f=await (await fetch("/api/fall",{cache:"no-store"})).json();
+    if(f) fallUebernehmen(f);
+    else $("banners").insertAdjacentHTML("beforeend",'<div class="banner info">Vom Raspberry Pi liegt noch kein abgeschlossener Fall vor.</div>');
+  }catch(e){ $("banners").insertAdjacentHTML("beforeend",'<div class="banner bad">Raspberry Pi nicht erreichbar. Mit dem WLAN des Pi verbunden?</div>'); }
+}
+
 function refresh(){
   const n=$("nat").value, cat = catOf(n);
   if($("sonder").dataset.nat!==n){ $("sonder").dataset.nat=n; buildSonder(); }
@@ -692,6 +715,7 @@ function vermerk(){
   try{ const db=await IDB.open(); await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").openCursor(); q.onsuccess=()=>{ const c=q.result; if(!c) return res(); if(String(c.key).startsWith("w:")) WPKGS[String(c.key).slice(2)]=c.value; c.continue(); }; q.onerror=()=>res(); }); }catch(e){}
   $("wServer").value = LS.get("wServer",""); $("wAuto").checked = LS.get("wAuto",false); $("wPersist").checked = LS.get("wPersist",true);
   renderWList();
+  if(new URLSearchParams(location.search).get("quelle")==="pi") fallVomPi();
   if($("wAuto").checked && $("wServer").value && navigator.onLine){
     loadFromServer($("wServer").value).then(n=>{ msg("wMsg",`${n} Weisungspaket(e) vom Server aktualisiert.`); renderWList(); }).catch(e=>msg("wMsg","Server nicht erreichbar – gespeicherte Weisungen werden verwendet ("+e.message+")."));
   }

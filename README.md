@@ -50,6 +50,13 @@ git push
 Installierte Apps holen sich die neue Fassung beim nächsten Öffnen mit Netz.
 Icons neu erzeugen: `powershell -File tools/make_icons.ps1`.
 
+## Sprachsteuerung (Prototyp, Raspberry Pi)
+
+Im Ordner [pi/](pi/README.md): Der Pi stellt die Fragen per Sprachausgabe, hört nur bei gedrückter
+Sprechtaste zu, erkennt die Antworten offline (Vosk) und bewertet mit demselben Regelwerk
+(`app/regelwerk.js`). Die vollständige Bewertung zeigt das Handy über das WLAN des Pi
+(`index.html?quelle=pi`). Hardware, Einrichtung und Mikrofon-Test: [pi/README.md](pi/README.md).
+
 ## Automatisierung
 
 | Was | Wann | Ergebnis |
