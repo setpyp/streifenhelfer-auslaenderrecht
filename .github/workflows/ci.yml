@@ -23,6 +23,8 @@ jobs:
           python-version: "3.12"
       - name: Regressionstests Regelwerk
         run: node tests/run_tests.mjs
+      - name: Sprachsteuerung (Raspberry Pi) – Dialog und Bewertung
+        run: python -m unittest discover -s pi -p "test_*.py" -v
       - name: Normzitate gegen Rechtsdatenpaket prüfen
         run: python tools/build_rechtsdaten.py --pruefen
       - name: Paketgrößen

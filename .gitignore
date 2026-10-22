@@ -8,3 +8,6 @@ weisungen/
 *.weisungen.json
 # lokale Werkzeug-Einstellungen
 .claude/
+# Raspberry Pi: lokale Umgebung und Sprachmodell
+pi/venv/
+pi/modell/
