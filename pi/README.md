@@ -12,17 +12,21 @@ Antworten **offline** und liest eine Kurzfassung der Bewertung vor. Die vollstä
 | Teil | Empfehlung |
 |---|---|
 | Rechner | Raspberry Pi 3 B/B+ mit Raspberry Pi OS Lite 64-bit (Bookworm), Powerbank |
-| Audio – USB | USB-Headset bzw. USB-Lautsprechermikrofon nach USB Audio Class (z. B. Logitech H390) |
+| Audio – USB | USB-Headset nach USB Audio Class mit Kabelfernbedienung (getestet: „Generic AB13X USB Audio“) |
+| Sprechtaste (Standard) | **Play/Pause-Taste am Headset-Kabel** – sie meldet echtes Drücken/Loslassen (Lauter/Leiser melden beim Halten nur Wiederholungen und eignen sich nicht) |
 | Audio – Klinke | Headset/Lautsprechermikrofon mit 4-poligem 3,5-mm-Stecker (Belegung **CTIA**) an einem USB-Soundadapter mit Kombibuchse (Chip C-Media CM108/CM119). Die Klinkenbuchse des Pi ist **nur Ausgang**. |
-| Sprechtaste | Drucktaster (Schließer) zwischen **GPIO 17 (Pin 11)** und **GND (Pin 9)** – kein Widerstand nötig |
-| Anzeige (optional) | LED mit 330-Ω-Vorwiderstand zwischen **GPIO 27 (Pin 13)** und **GND (Pin 14)** – leuchtet, solange das Mikrofon ausgelesen wird |
+| Sprechtaste (Alternative) | Drucktaster (Schließer) zwischen **GPIO 17 (Pin 11)** und **GND (Pin 9)**, Start mit `--taste-art gpio` |
+| Anzeige (optional) | LED mit 330-Ω-Vorwiderstand zwischen **GPIO 27 (Pin 13)** und **GND (Pin 14)**, Start mit `--led 27` |
 
-Medientasten von Handy-Headsets eignen sich **nicht** als Sprechtaste: Sie schalten das Mikrofon nicht ab.
+Welche Taste ein Headset meldet, zeigt `sudo evtest` (Gerät wählen, Taste halten): geeignet ist eine Taste, die
+`value 1` beim Drücken und `value 0` erst beim Loslassen meldet. Andere Taste/Gerät: `--taste-code` / `--taste-geraet`.
+Tasten analoger Handy-Headsets (Klinke) eignen sich **nicht**: Sie schließen nur die Mikrofonleitung kurz.
 Ältere Headsets mit Belegung **OMTP** vertauschen Mikrofon und Masse und funktionieren am CTIA-Adapter nicht.
 
 ## Einrichtung
 
 ```
+sudo apt install -y git
 git clone https://github.com/setpyp/streifenhelfer-auslaenderrecht.git
 cd streifenhelfer-auslaenderrecht
 bash pi/install.sh --hotspot Streifenhelfer EinSicheresPasswort
@@ -38,7 +42,7 @@ abweichend z. B. `--mikrofon plughw:1,0 --lautsprecher plughw:1,0` in der Dienst
 ## Mikrofon-Test (vor dem ersten Einsatz)
 
 1. Ohne Tastendruck darf kein Aufnahmeprozess laufen: `pgrep -a arecord` liefert **nichts**.
-2. Taste drücken und halten: LED leuchtet, `pgrep -a arecord` zeigt **einen** Prozess.
+2. Sprechtaste drücken und halten: `pgrep -a arecord` zeigt **einen** Prozess (ggf. leuchtet die LED); nach dem Loslassen wieder keinen.
 3. Hat das Gerät einen Stummschalter: stumm schalten, testweise aufnehmen und anhören – es darf nur Stille zu hören sein:
    ```
    arecord -D plughw:1,0 -f S16_LE -r 16000 -d 5 /tmp/test.wav && aplay /tmp/test.wav && rm /tmp/test.wav
@@ -47,7 +51,7 @@ abweichend z. B. `--mikrofon plughw:1,0 --lautsprecher plughw:1,0` in der Dienst
 ## Bedienung
 
 1. Der Pi sagt „Streifenhelfer bereit“ und stellt die erste Frage.
-2. **Taste drücken, antworten, loslassen.** Der Pi liest das Erkannte vor („Türkei. Richtig?“) – mit „ja“ oder „nein“ bestätigen.
+2. **Sprechtaste (Play/Pause) drücken und halten, antworten, loslassen.** Der Pi liest das Erkannte vor („Türkei. Richtig?“) – mit „ja“ oder „nein“ bestätigen.
 3. Jederzeit möglich: **„wiederholen“**, **„zurück“**, **„überspringen“**, **„abbrechen“**.
 4. Am Ende liest der Pi Ergebnis, wichtigste Maßnahmen und Straftatbestände vor.
 5. Einzelheiten: Handy mit dem Pi-WLAN verbinden und `http://10.42.0.1:8080/index.html?quelle=pi` öffnen.
@@ -63,6 +67,7 @@ Voraussetzungen und eine optionale Bemerkung. Zahlen und Daten werden gesprochen
 python pi/streifenhelfer_pi.py --simulation --einmal
 ```
 Fragen erscheinen als Text, Antworten werden getippt. Für die vorgelesene Bewertung wird Node.js benötigt.
+Auf dem Pi zeigt `--anzeigen` zusätzlich Fragen und erkannten Text in der Konsole (nur zum Testen, nicht im Dienst verwenden).
 
 ## Grenzen des Prototyps
 

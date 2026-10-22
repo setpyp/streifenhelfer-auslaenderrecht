@@ -2,18 +2,23 @@
 """Sprachgesteuerter Streifenhelfer für Raspberry Pi (Prototyp).
 
 Der Pi stellt die Fragen per Sprachausgabe (espeak-ng), hört NUR bei gedrückter Sprechtaste zu
-(GPIO 17), erkennt die Antwort offline (Vosk) und bewertet mit app/regelwerk.js (Node.js).
+(Standard: Play/Pause-Taste am USB-Headset, alternativ Taster an GPIO 17), erkennt die Antwort
+offline (Vosk) und bewertet mit app/regelwerk.js (Node.js).
 Die vollständige Bewertung ist im Pi-Netz unter http://<pi>:8080/index.html?quelle=pi abrufbar.
 
 Datenschutz: Audio wird nur während des Tastendrucks gelesen und nur im Arbeitsspeicher verarbeitet;
 weder Audio noch erkannter Text werden gespeichert oder protokolliert.
 
-  python3 pi/streifenhelfer_pi.py                 # Pi mit Sprechtaste, Mikrofon, Lautsprecher
+  python3 pi/streifenhelfer_pi.py                 # Pi mit USB-Headset (Play/Pause = Sprechtaste)
+  python3 pi/streifenhelfer_pi.py --taste-art gpio --led 27   # Taster an GPIO 17, LED an GPIO 27
   python3 pi/streifenhelfer_pi.py --simulation    # PC: Tastatur statt Taste/Mikrofon, Text statt Sprache
 """
 import argparse
 import json
+import os
 import re
+import select
+import struct
 import subprocess
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -52,15 +57,66 @@ class Sprachausgabe:
         espeak.wait()
 
 
+EV_KEY, KEY_PLAYPAUSE = 1, 164
+EREIGNIS = struct.Struct("llHHi")  # struct input_event (64-Bit-Linux): Zeit, Typ, Code, Wert
+
+
+def eingabegeraet(name_teil, devices_text=None):
+    """/dev/input/eventN des ersten Eingabegeräts, dessen Name name_teil enthält (aus /proc/bus/input/devices)."""
+    text = devices_text if devices_text is not None else Path("/proc/bus/input/devices").read_text()
+    for block in text.split("\n\n"):
+        name = re.search(r'^N: Name="(.*)"', block, re.M)
+        event = re.search(r"^H: Handlers=.*\b(event\d+)\b", block, re.M)
+        if name and event and name_teil.lower() in name.group(1).lower():
+            return f"/dev/input/{event.group(1)}"
+    raise RuntimeError(f"Kein Eingabegerät mit '{name_teil}' im Namen gefunden – Headset angesteckt?")
+
+
+class UsbTaste:
+    """Taste eines USB-/Bluetooth-Geräts über /dev/input (evdev), gleiche Schnittstelle wie gpiozero.Button."""
+
+    def __init__(self, pfad, code=KEY_PLAYPAUSE):
+        self.fd, self.code, self.gedrueckt = os.open(pfad, os.O_RDONLY | os.O_NONBLOCK), code, False
+
+    def _lesen(self, wartezeit):
+        if not select.select([self.fd], [], [], wartezeit)[0]:
+            return
+        daten = os.read(self.fd, EREIGNIS.size * 64)
+        for i in range(0, len(daten) - EREIGNIS.size + 1, EREIGNIS.size):
+            _, _, typ, code, wert = EREIGNIS.unpack_from(daten, i)
+            if typ == EV_KEY and code == self.code and wert in (0, 1):  # 2 = Tastenwiederholung
+                self.gedrueckt = wert == 1
+
+    @property
+    def is_pressed(self):
+        self._lesen(0)
+        return self.gedrueckt
+
+    def wait_for_press(self):
+        while not self.is_pressed:
+            self._lesen(None)
+
+    def wait_for_release(self):
+        while self.is_pressed:
+            self._lesen(None)
+
+
+class KeineLed:
+    def on(self):
+        pass
+
+    def off(self):
+        pass
+
+
 class Sprechtaste:
     """Mikrofon wird nur ausgelesen, solange die Taste gedrückt ist (arecord läuft nur dann)."""
 
-    def __init__(self, modell, geraet, pin_taste, pin_led):
-        from gpiozero import LED, Button
+    def __init__(self, modell, geraet, taste, led=None):
         from vosk import KaldiRecognizer, Model, SetLogLevel
         SetLogLevel(-1)
         self.model, self.Recognizer, self.geraet = Model(str(modell)), KaldiRecognizer, geraet
-        self.taste, self.led = Button(pin_taste, pull_up=True, bounce_time=0.05), LED(pin_led)
+        self.taste, self.led = taste, led or KeineLed()
 
     def warten(self):
         self.taste.wait_for_press()
@@ -114,6 +170,24 @@ class Handyansicht(SimpleHTTPRequestHandler):
         pass
 
 
+def _anzeigen(sprich, hoere):
+    """Testhilfe: Gesprochenes und Erkanntes zusätzlich in der Konsole ausgeben (nicht für den Dienst)."""
+    def sprich2(text):
+        print(f"[Pi] {text}", flush=True)
+        sprich(text)
+
+    class Hoere2:
+        def __call__(self, grammatik):
+            text = hoere(grammatik)
+            print(f"[erkannt] {text!r}", flush=True)
+            return text
+
+        def warten(self):
+            hoere.warten()
+
+    return sprich2, Hoere2()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--simulation", action="store_true", help="Tastatur und Textausgabe statt Pi-Hardware")
@@ -121,8 +195,12 @@ def main():
     ap.add_argument("--modell", default=str(ROOT / "pi" / "modell"), help="Vosk-Modellordner")
     ap.add_argument("--mikrofon", default=None, help="ALSA-Aufnahmegerät (Standard: erstes USB-Gerät)")
     ap.add_argument("--lautsprecher", default=None, help="ALSA-Wiedergabegerät (Standard: erstes USB-Gerät)")
-    ap.add_argument("--taste", type=int, default=17, help="GPIO der Sprechtaste")
-    ap.add_argument("--led", type=int, default=27, help="GPIO der Anzeige 'Mikrofon aktiv'")
+    ap.add_argument("--taste-art", choices=["usb", "gpio"], default="usb", help="Sprechtaste am Headset (usb) oder Taster (gpio)")
+    ap.add_argument("--taste-geraet", default="USB Audio", help="Teil des Namens des Eingabegeräts (usb)")
+    ap.add_argument("--taste-code", type=int, default=KEY_PLAYPAUSE, help="Tastencode (usb), Standard Play/Pause")
+    ap.add_argument("--taste", type=int, default=17, help="GPIO des Tasters (gpio)")
+    ap.add_argument("--led", type=int, default=0, help="GPIO einer LED 'Mikrofon aktiv' (0 = keine)")
+    ap.add_argument("--anzeigen", action="store_true", help="Fragen und erkannten Text in der Konsole zeigen (nur zum Testen)")
     ap.add_argument("--port", type=int, default=8080, help="Port der Handy-Ansicht (0 = aus)")
     a = ap.parse_args()
 
@@ -130,7 +208,18 @@ def main():
         sprich, hoere = (lambda text: print(f"[Pi] {text}")), Simulation()
     else:
         sprich = Sprachausgabe(a.lautsprecher or usb_geraet("aplay"))
-        hoere = Sprechtaste(a.modell, a.mikrofon or usb_geraet("arecord"), a.taste, a.led)
+        if a.taste_art == "usb":
+            taste = UsbTaste(eingabegeraet(a.taste_geraet), a.taste_code)
+        else:
+            from gpiozero import Button
+            taste = Button(a.taste, pull_up=True, bounce_time=0.05)
+        led = None
+        if a.led:
+            from gpiozero import LED
+            led = LED(a.led)
+        hoere = Sprechtaste(a.modell, a.mikrofon or usb_geraet("arecord"), taste, led)
+        if a.anzeigen:
+            sprich, hoere = _anzeigen(sprich, hoere)
 
     if a.port:
         server = ThreadingHTTPServer(("0.0.0.0", a.port), Handyansicht)

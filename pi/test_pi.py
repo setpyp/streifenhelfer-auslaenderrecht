@@ -115,6 +115,47 @@ class Kurzfassung(unittest.TestCase):
         self.assertIn("1 Punkte sind zu verifizieren", k)
 
 
+PROC_DEVICES = '''I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="vc4-hdmi"
+H: Handlers=kbd event0
+B: KEY=ffffc000000000 3ff
+
+I: Bus=0003 Vendor=4c24 Product=3d3f Version=0100
+N: Name="Generic AB13X USB Audio"
+H: Handlers=kbd event2
+B: KEY=1000000000000 7800000000 e000000000000 0
+'''
+
+
+class UsbSprechtaste(unittest.TestCase):
+    def test_geraet_finden(self):
+        import streifenhelfer_pi as sp
+        self.assertEqual(sp.eingabegeraet("USB Audio", PROC_DEVICES), "/dev/input/event2")
+        with self.assertRaises(RuntimeError):
+            sp.eingabegeraet("Bluetooth", PROC_DEVICES)
+
+    @unittest.skipIf(sys.platform.startswith("win"), "select() auf Pipes nur unter Linux")
+    def test_halten_und_loslassen(self):
+        import os
+        import streifenhelfer_pi as sp
+        lesen, schreiben = os.pipe()
+        taste = sp.UsbTaste.__new__(sp.UsbTaste)
+        taste.fd, taste.code, taste.gedrueckt = lesen, sp.KEY_PLAYPAUSE, False
+        ereignis = lambda code, wert: sp.EREIGNIS.pack(0, 0, sp.EV_KEY, code, wert)
+        self.assertFalse(taste.is_pressed)
+        os.write(schreiben, ereignis(115, 1) + ereignis(115, 0))        # Lauter: ignorieren
+        self.assertFalse(taste.is_pressed)
+        os.write(schreiben, ereignis(sp.KEY_PLAYPAUSE, 1))
+        taste.wait_for_press()
+        self.assertTrue(taste.is_pressed)
+        os.write(schreiben, ereignis(sp.KEY_PLAYPAUSE, 2))              # Wiederholung ändert nichts
+        self.assertTrue(taste.is_pressed)
+        os.write(schreiben, ereignis(sp.KEY_PLAYPAUSE, 0))
+        taste.wait_for_release()
+        self.assertFalse(taste.is_pressed)
+        os.close(lesen), os.close(schreiben)
+
+
 @unittest.skipUnless(shutil.which("node"), "Node.js nicht installiert")
 class BewertungMitRegelwerk(unittest.TestCase):
     def bewerte(self, fall):
