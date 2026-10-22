@@ -454,14 +454,11 @@ function daysIn180(stays, ref){
 /* ---------- Formular ---------- */
 function buildNat(){
   const L = RD?.laender; CAT={}; NOTES = L?.hinweise||{};
-  const groups = [["DE","Deutschland"],["EU","EU (Schengen)"],["EUN","EU (Nicht-Schengen)"],["EWR","EWR"],["CH","Schweiz"],["V","Drittstaaten – visumfrei"],["VB","Drittstaaten – visumfrei (biometrisch)"],["P","Drittstaaten – visumpflichtig"],["X","Sonstige"]];
+  // eine alphabetische Liste (schneller zu finden); die Kategorie zeigt der Hinweis unter dem Feld
+  for(const [cat,namen] of Object.entries(L?.kategorien||{})) for(const n of namen) CAT[n]=cat;
   const sel = $("nat"), keep = sel.value;
   sel.innerHTML = '<option value="">– auswählen –</option>';
-  for(const [cat,label] of groups){
-    const og = document.createElement("optgroup"); og.label = label;
-    [...(L?.kategorien?.[cat]||[])].sort((a,b)=>a.localeCompare(b,"de")).forEach(n=>{ CAT[n]=cat; const o=document.createElement("option"); o.value=n; o.textContent=n; og.appendChild(o); });
-    sel.appendChild(og);
-  }
+  Object.keys(CAT).sort((a,b)=>a.localeCompare(b,"de")).forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent=n; sel.appendChild(o); });
   sel.value = keep;
 }
 function addStay(from="", to=""){
