@@ -125,7 +125,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
 <section class="card">
   <h2>1 · Kontrollsituation</h2>
   <label for="date">Kontrolldatum</label>
-  <input type="date" id="date">
+  <input type="text" class="datum" inputmode="numeric" maxlength="10" placeholder="ttmmjjjj" id="date">
   <label for="place">Ort / Lage</label>
   <select id="place">
     <option value="">– auswählen –</option>
@@ -192,7 +192,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
     <option value="grenzgaenger">Grenzgängerkarte / Daueraufenthaltskarte (Freizügigkeit)</option>
   </select>
   <div id="validWrap" class="row">
-    <div><label for="validUntil">Gültig bis</label><input type="date" id="validUntil"></div>
+    <div><label for="validUntil">Gültig bis</label><input type="text" class="datum" inputmode="numeric" maxlength="10" placeholder="ttmmjjjj" id="validUntil"></div>
     <div id="visaDaysWrap"><label for="visaDays">Visum: zulässige Aufenthaltstage</label><input type="number" id="visaDays" min="1" max="90" inputmode="numeric"></div>
   </div>
   <div id="ltvWrap" class="checks hidden"><div class="hint"><b>VrG</b> = Visum mit räumlich beschränkter Gültigkeit, englisch <b>LTV</b> = <i>Limited Territorial Validity</i>: gilt nur für die auf der Visummarke genannten Schengen-Staaten (Art. 25 Visakodex), nicht für den ganzen Schengen-Raum.</div>
@@ -454,6 +454,7 @@ async function removeWPkg(src){ delete WPKGS[src]; try{ await IDB.del("w:"+src);
 /* ---------- Hilfsfunktionen ---------- */
 const toDate = v => v ? new Date(v + "T00:00:00") : null;
 const fmt = d => d ? d.toLocaleDateString("de-DE") : "–";
+const heuteDE = () => new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 const todayISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
 function esc(t){ return String(t??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function msg(id,t){ $(id).textContent=t; }
@@ -569,18 +570,18 @@ function refresh(){
   $("issuerWrap").classList.toggle("hidden", !issuerRelevant());
   $("restrictWrap").classList.toggle("hidden", !["gestattung","duldung"].includes(t));
   $("workWrap").classList.toggle("hidden", !$("working").checked);
-  const st=readStays(), d = daysIn180(st, toDate($("date").value));
+  const st=readStays(), d = daysIn180(st, parseDE($("date").value));
   $("calcDays").value = st.every(s=>!s.from) ? "" : d + " Tage";
 }
 function collect(){
-  const stays = readStays(), ref = toDate($("date").value) || toDate(todayISO());
+  const stays = readStays(), ref = parseDE($("date").value) || toDate(todayISO());
   const calc = stays.some(s=>s.from) ? daysIn180(stays, ref) : null;
   const manual = $("manualDays").value === "" ? null : parseInt($("manualDays").value,10);
   return {
     nat:$("nat").value, cat:catOf($("nat").value), age: $("age").value===""?null:parseInt($("age").value,10),
     unaccompanied: $("acc").value==="no", eufam:$("eufam").checked,
     date:ref, place:$("place").value, from:$("from").value, nearEntry:$("nearEntry").checked, purpose:$("purpose").value,
-    iddoc:$("iddoc").value, title:$("title").value, validUntil:toDate($("validUntil").value),
+    iddoc:$("iddoc").value, title:$("title").value, validUntil:parseDE($("validUntil").value),
     visaDays: $("visaDays").value===""?90:parseInt($("visaDays").value,10), ltvDE:$("ltvDE").checked,
     restrictViol:$("restrictViol").checked, restrictRepeat:$("restrictRepeat").checked,
     days: manual!==null ? manual : calc, entryDE: parseDE($("entryDE").value),
@@ -741,7 +742,7 @@ function vermerk(){
 }
 
 (async function start(){
-  $("date").value = todayISO(); addStay();
+  $("date").value = heuteDE(); addStay();
   // neueres, früher heruntergeladenes Rechtsdatenpaket bevorzugen
   try{ const stored = await IDB.get("rechtsdaten"); if(stored && (!RD || stored.meta.version>RD.meta.version)) RD=stored; }catch(e){}
   if(!RD || typeof evaluate!=="function"){
@@ -752,7 +753,7 @@ function vermerk(){
     $("evalBtn").disabled=true; $("copyBtn").disabled=true;
     return;
   }
-  initData(); buildIssuer(); kontrolleLaden(); datumsFeld($("entryDE"));
+  initData(); buildIssuer(); kontrolleLaden(); for(const id of ["entryDE","date","validUntil"]) datumsFeld($(id));
   // gespeicherte Weisungen laden
   try{ const db=await IDB.open(); await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").openCursor(); q.onsuccess=()=>{ const c=q.result; if(!c) return res(); if(String(c.key).startsWith("w:")) WPKGS[String(c.key).slice(2)]=c.value; c.continue(); }; q.onerror=()=>res(); }); }catch(e){}
   $("wServer").value = LS.get("wServer",""); $("wAuto").checked = LS.get("wAuto",false); $("wPersist").checked = LS.get("wPersist",true);
@@ -767,7 +768,7 @@ $("age").addEventListener("input",refresh);
 $("addStay").onclick=()=>addStay();
 $("evalBtn").onclick=()=>render();
 $("sonder").addEventListener("change",renderSonderInfo);
-$("resetBtn").onclick=()=>{ $("f").reset(); kontrolleLaden(); dauerFreigeben(false); $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
+$("resetBtn").onclick=()=>{ $("f").reset(); kontrolleLaden(); dauerFreigeben(false); $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=heuteDE(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
 $("copyBtn").onclick=async()=>{ const t=vermerk(); try{ await navigator.clipboard.writeText(t); $("copyBtn").textContent="Kopiert ✓"; }catch(e){ prompt("Vermerk:",t); } setTimeout(()=>$("copyBtn").textContent="Vermerk kopieren",1500); };
 $("themeBtn").onclick=()=>{ const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark?"light":"dark"; };
 document.addEventListener("click",e=>{
