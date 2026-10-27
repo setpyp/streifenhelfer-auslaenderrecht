@@ -28,6 +28,7 @@ for (const f of faelle) {
   const s = { ...standard, ...f.eingabe };
   for (const k of ["date", "validUntil", "entryDE"]) s[k] = toDate(s[k]);
   s.cat = catOf(s.nat);
+  s.issuerCat = s.issuer ? catOf(s.issuer) : null;
   // Sonderregelungen wie in der App: verfügbare Regeln je Staatsangehörigkeit, gewählte Regel mit Voraussetzungen
   s.sonderVerfuegbar = ["DE", "EU", "EUN", "EWR", "CH"].includes(s.cat) || !s.nat ? []
     : sonder.filter(x => x.staaten.includes("*") || x.staaten.includes(s.nat)).map(x => x.id);
@@ -42,6 +43,7 @@ for (const f of faelle) {
   const e = f.erwartet;
   if (e.level && R.level !== e.level) errs.push(`level: erwartet ${e.level}, ist ${R.level}`);
   if (e.head && R.head !== e.head) errs.push(`head: erwartet "${e.head}", ist "${R.head}"`);
+  if (e.dauerRelevant !== undefined && !!R.dauerRelevant !== e.dauerRelevant) errs.push(`dauerRelevant: erwartet ${e.dauerRelevant}, ist ${!!R.dauerRelevant}`);
   for (const [key, part] of checks) {
     const titles = R[part].map(i => i.t);
     for (const want of e[key] || []) if (!titles.some(t => t.includes(want))) errs.push(`${key}: fehlt "${want}" (vorhanden: ${titles.join(" | ") || "–"})`);

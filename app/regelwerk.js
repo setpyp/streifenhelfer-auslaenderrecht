@@ -19,6 +19,7 @@ function evaluate(s){
   const isExit = s.place==="exit";
   const minor = s.age!==null && s.age<18;
 
+  if(!s.place){ R.level="warn"; R.head="Ort/Lage der Kontrolle fehlt"; R.sub="Bitte unter 1 · Kontrollsituation auswählen."; return R; }
   if(!s.nat){ R.level="warn"; R.head="Staatsangehörigkeit fehlt"; R.sub="Bitte Staatsangehörigkeit (ggf. „ungeklärt“) auswählen."; return R; }
 
   /* ---- Rechtsgrundlage der Kontrolle ---- */
@@ -33,7 +34,8 @@ function evaluate(s){
   }[s.place];
   M("info","Rechtsgrundlage der Kontrolle: "+ctrlBasis[0],"Anlassunabhängige Kontrollen diskriminierungsfrei durchführen (keine Auswahl allein nach Hautfarbe/Herkunft); Lageerkenntnisse dokumentieren. Kontrollen im Binnengrenzgebiet dürfen nicht die gleiche Wirkung wie Grenzübertrittskontrollen haben.",[...ctrlBasis[1],"Art. 3 Abs. 3 GG"], !atBorderEntry && !isExit);
 
-  if(s.warrant) M("bad","Fahndungstreffer abarbeiten","Maßnahme nach Ausschreibungsinhalt (Festnahme, Aufenthaltsermittlung, Einreiseverweigerung); Belehrung, Vorführung, Benachrichtigungen.",["§ 127 StPO","§ 457 StPO","Art. 26 2018/1862"]);
+  if(s.warrant) M("bad","Festnahme aufgrund Haftbefehl / Ausschreibung","Festnahme; unverzüglich dem zuständigen Gericht vorführen bzw. Vollstreckung nach Ausschreibungsinhalt; Belehrung; Benachrichtigung der ausschreibenden Stelle.",["§ 115 StPO","§ 457 StPO","Art. 26 2018/1862"]);
+  if(s.aufenthaltsermittlung) M("warn","Aufenthaltsermittlung: Anschrift feststellen und mitteilen","Wohnsitz bzw. Aufenthaltsort feststellen und der ausschreibenden Stelle mitteilen. Die Ausschreibung allein rechtfertigt keine Festnahme.",["§ 131a StPO","Art. 34 2018/1862"],true);
 
   /* ================= Deutsche ================= */
   if(s.cat==="DE"){
@@ -42,6 +44,7 @@ function evaluate(s){
     F("ok","Kein Ausländer","Auch bei Mehrstaatigkeit gilt die Person als Deutsche/r.",["§ 2 Abs. 1 AufenthG","Art. 116 Abs. 1 GG"]);
     if(["none","expired"].includes(s.iddoc)) F("warn","Ausweis-/Passpflicht","Pflicht zum Besitz, nicht zum Mitführen im Inland. Beim Grenzübertritt über eine Auslandsgrenze Pass oder Personalausweis erforderlich.",["§ 1 PAuswG","§ 1 PassG","§ 32 PAuswG","§ 25 PassG"],true);
     M("info","Identitätsfeststellung","Bei fehlendem Dokument Identität anderweitig feststellen.",["§ 23 Abs. 3 BPolG","§ 24 BPolG"]);
+    if(s.identityUnclear) hinweisFastId(M);
     return R;
   }
 
@@ -112,9 +115,10 @@ function evaluate(s){
     case "visa_d_other":
     case "at_other":
       basis = s.title==="at_other" ? "Aufenthaltstitel anderer Schengen-Staat" : "Nationales Visum anderer Schengen-Staat";
-      if(!validTitle){ lawful=false; F("bad",basis+" abgelaufen","Kein Recht zur Einreise/zum Aufenthalt in Deutschland.",["Art. 21 SDÜ"]); }
+      if(s.issuerCat==="EUN"){ lawful=false; F("bad","Ausstellerstaat wendet den Schengen-Besitzstand nicht vollständig an","Titel bzw. Visum von "+s.issuer+" berechtigt nicht zum Kurzaufenthalt in Deutschland nach Art. 21 SDÜ; erforderlich ist ein Visum bzw. die Visumfreiheit.",["Art. 21 SDÜ","§ 4 Abs. 1 AufenthG"]); }
+      else if(!validTitle){ lawful=false; F("bad",basis+" abgelaufen","Kein Recht zur Einreise/zum Aufenthalt in Deutschland.",["Art. 21 SDÜ"]); }
       else if(dayOK===false){ lawful=false; F("bad","90/180-Tage überschritten","Kurzaufenthalt nach Art. 21 SDÜ nur bis 90 Tage je 180 Tage.",["Art. 21 SDÜ","Art. 6 Abs. 1 SGK"]); }
-      else { lawful = passOK ? (dayOK===null?null:true) : false;
+      else { lawful = passOK ? (dayOK===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
         F(lawful===false?"bad":(lawful?"ok":"warn"),"Kurzaufenthalt nach Art. 21 SDÜ","Bis 90 Tage je 180 Tage bei gültigem Reisedokument; keine Erwerbstätigkeit (Ausnahmen § 17 Abs. 2, 3 AufenthV).",["Art. 21 SDÜ","Art. 6 Abs. 1 SGK","§ 15 AufenthV","§ 17 AufenthV"]); }
       break;
     case "visa_c":
@@ -123,7 +127,7 @@ function evaluate(s){
       if(s.title==="visa_ltv" && !s.ltvDE){ lawful=false; F("bad","VrG/LTV-Visum nicht für Deutschland gültig","Visum berechtigt nur zum Aufenthalt in den genannten Staaten.",["Art. 25 Visakodex"]); break; }
       if(!validTitle){ lawful=false; F("bad","Visum abgelaufen (Overstay)","Gültigkeitsdauer überschritten.",["Art. 6 SGK","§ 4 Abs. 1 AufenthG"]); }
       else if(s.days!==null && s.days > s.visaDays){ lawful=false; F("bad","Zulässige Aufenthaltsdauer des Visums überschritten",`${s.days} Tage genutzt, ${s.visaDays} erlaubt.`,["Art. 24 Visakodex","§ 4 Abs. 1 AufenthG"]); }
-      else { lawful = passOK ? (s.days===null?null:true) : false;
+      else { lawful = passOK ? (s.days===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
         F(lawful===false?"bad":(lawful?"ok":"warn"),"Gültiges Schengen-Visum","Nur Kurzaufenthalt zum Visumzweck; Erwerbstätigkeit grds. nicht gestattet. VIS-Abfrage empfohlen.",["§ 6 Abs. 1 Nr. 1 AufenthG","Art. 24 Visakodex","Art. 18 VIS-VO"]);
         if(s.purpose==="work"||s.purpose==="family"||s.working) F("warn","Zweckwidrigkeit","Annullierung/Aufhebung des Visums durch die Grenzbehörde im Zusammenhang mit Zurückweisung/Zurückschiebung/Abschiebung möglich.",["Art. 34 Visakodex","§ 71 Abs. 3 Nr. 3 AufenthG"]);
       }
@@ -171,7 +175,7 @@ function evaluate(s){
         basis="Visumfreier Kurzaufenthalt";
         if(dayOK===false){ lawful=false; F("bad","90/180-Tage überschritten (Overstay)",`${s.days} Tage im Bezugszeitraum.`,["Art. 6 Abs. 1 SGK","Art. 20 SDÜ","Art. 4 2018/1806"]);
           if((s.sonderVerfuegbar||[]).includes("anlage-a-sichtvermerk")) H("Ältere Sichtvermerksabkommen","Für diese Staatsangehörigkeit besteht ein älteres Sichtvermerksabkommen (Anlage A AufenthV), das längere Aufenthalte in Deutschland erlauben kann – unter „Sonderstatus“ prüfen.",["§ 16 AufenthV","AufenthV Anlage A","Art. 20 SDÜ"]); }
-        else { lawful = passOK ? (dayOK===null?null:true) : false;
+        else { lawful = passOK ? (dayOK===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
           F(lawful===false?"bad":(lawful?"ok":"warn"),"Visumfreier Kurzaufenthalt","Bis 90 Tage je 180 Tage; Einreisevoraussetzungen Art. 6 SGK (Zweck, Mittel, keine Ausschreibung). Nach Inbetriebnahme von ETIAS zusätzlich gültige Reisegenehmigung erforderlich.",["Art. 4 2018/1806","Art. 6 SGK","Art. 20 SDÜ","§ 15 AufenthV","ETIAS-VO"],true);
           if(dayOK===null) H("Aufenthaltsdauer unbekannt","Ein-/Ausreisestempel bzw. EES-Abfrage zur Berechnung heranziehen.",["Art. 6 Abs. 2 SGK","EES-VO"]);
         }
@@ -190,6 +194,12 @@ function evaluate(s){
     else C("warn","Unerlaubte Beschäftigung / selbständige Tätigkeit","Beschäftigung: OWi nach SGB III; selbständige Tätigkeit: OWi nach AufenthG.",["§ 404 Abs. 2 Nr. 4 SGB III","§ 98 Abs. 3 Nr. 1 AufenthG"]);
     N("Finanzkontrolle Schwarzarbeit (Zoll)","Mitteilung zur Prüfung der Beschäftigung (auch Arbeitgeberhaftung).",["§ 6 SchwarzArbG","§ 66 Abs. 4 AufenthG"],true);
     if(atBorderEntry) M("warn","Zurückweisung wegen beabsichtigter Erwerbstätigkeit","Kann-Zurückweisung bei Schengen-Visum/Visumfreiheit und beabsichtigter unerlaubter Erwerbstätigkeit.",["§ 15 Abs. 2 AufenthG"]);
+  }
+
+  /* SIS-Ausschreibung zur Rückkehr: kein Einreiseverbot als solches */
+  if(s.rueckkehr){
+    F("warn","SIS-Ausschreibung zur Rückkehr","Gegen die Person besteht eine Rückkehrentscheidung eines Mitgliedstaats. In Deutschland vollziehbar ausreisepflichtig nur, wenn die zuständige Behörde die Entscheidung anerkennt.",["Art. 3 2018/1860","§ 58 Abs. 2 AufenthG"]);
+    M("warn","Ausschreibenden Mitgliedstaat kontaktieren (SIRENE)","Umgehend über den Austausch von Zusatzinformationen die zu treffenden Maßnahmen abstimmen; bei Ausreise über die Außengrenze Rückkehr bestätigen; Ausländerbehörde unterrichten.",["Art. 7 2018/1860","Art. 6 2018/1860","Art. 8 2018/1860","§ 87 Abs. 2 AufenthG"],true);
   }
 
   /* SIS / Einreiseverbot */
@@ -280,12 +290,22 @@ function evaluate(s){
   if(R.level==="ok" && R.crim.some(c=>c.lvl==="bad"||c.lvl==="warn")){
     R.level="warn"; R.head="Aufenthalt gedeckt – Verstöße festgestellt"; R.sub=basis+". Aufenthaltsstatus besteht, aber Straf-/Bußgeldtatbestände sind zu prüfen.";
   }
+  if(R.level==="ok" && s.rueckkehr){
+    R.level="warn"; R.head="Aufenthalt nach Aktenlage gedeckt – SIS-Treffer Rückkehr klären"; R.sub=basis+". Rückkehrentscheidung eines Mitgliedstaats mit dem ausschreibenden Staat klären.";
+  }
 
   commonTail(s,R,{M,N,H,P,minor,lawful});
   return R;
 }
 
+function hinweisFastId(M){
+  M("warn","Fast-ID durchführen","Identität zweifelhaft: Fingerabdruck-Schnellabgleich (Fast-ID) mit vorhandenen erkennungsdienstlichen Daten; Ergebnis dokumentieren.",["§ 24 BPolG","§ 49 Abs. 3, 6 AufenthG"],true);
+}
+
 function commonTail(s,R,{M,N,H,P,minor,lawful}){
+  if(s.identityUnclear) hinweisFastId(M);
+  if(R.level==="warn" || s.iddoc==="forged" || s.identityUnclear)
+    M("warn","Weitere Prüfung: 2. Kontrolllinie","Sachverhalt ist nicht abschließend geklärt. An der Grenzübergangsstelle Kontrolle in der zweiten Kontrolllinie (gesonderter Ort, vertiefte Dokumenten- und Datenprüfung); im Inland entsprechend vertiefte Prüfung auf der Dienststelle.",["Art. 2 SGK","Art. 8 SGK"],true);
   if(minor){
     if(s.age<14) H("Strafunmündig","Kein Strafverfahren gegen das Kind.",["§ 19 StGB"]);
     else H("Jugendlicher","JGG beachten; Erziehungsberechtigte benachrichtigen.",["§ 67 JGG","§ 67a JGG"]);
