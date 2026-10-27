@@ -653,6 +653,144 @@
         "level": "ok",
         "dauerRelevant": false
       }
+    },
+    {
+      "name": "Treffer Festnahme (Haftbefehl)",
+      "eingabe": {
+        "nat": "Polen",
+        "warrant": true
+      },
+      "erwartet": {
+        "massnahmen": [
+          "Festnahme aufgrund Haftbefehl"
+        ],
+        "massnahmen_nicht": [
+          "Aufenthaltsermittlung"
+        ]
+      }
+    },
+    {
+      "name": "Treffer Aufenthaltsermittlung: keine Festnahme",
+      "eingabe": {
+        "nat": "Polen",
+        "aufenthaltsermittlung": true
+      },
+      "erwartet": {
+        "massnahmen": [
+          "Aufenthaltsermittlung: Anschrift feststellen"
+        ],
+        "massnahmen_nicht": [
+          "Festnahme"
+        ]
+      }
+    },
+    {
+      "name": "Treffer Rückkehrentscheidung bei sonst gedecktem Aufenthalt",
+      "eingabe": {
+        "nat": "Japan",
+        "days": 30,
+        "rueckkehr": true
+      },
+      "erwartet": {
+        "level": "warn",
+        "head": "Aufenthalt nach Aktenlage gedeckt – SIS-Treffer Rückkehr klären",
+        "feststellungen": [
+          "SIS-Ausschreibung zur Rückkehr"
+        ],
+        "massnahmen": [
+          "SIRENE"
+        ],
+        "strafrecht_nicht": [
+          "Einreiseverbot"
+        ]
+      }
+    },
+    {
+      "name": "Identität zweifelhaft: Fast-ID und 2. Kontrolllinie",
+      "eingabe": {
+        "nat": "Syrien",
+        "identityUnclear": true
+      },
+      "erwartet": {
+        "massnahmen": [
+          "Fast-ID durchführen",
+          "Weitere Prüfung: 2. Kontrolllinie"
+        ]
+      }
+    },
+    {
+      "name": "Identität zweifelhaft bei Deutschen: Fast-ID",
+      "eingabe": {
+        "nat": "Deutschland",
+        "identityUnclear": true
+      },
+      "erwartet": {
+        "massnahmen": [
+          "Fast-ID durchführen"
+        ]
+      }
+    },
+    {
+      "name": "Status ungeklärt: Hinweis 2. Kontrolllinie",
+      "eingabe": {
+        "nat": "Japan"
+      },
+      "erwartet": {
+        "level": "warn",
+        "massnahmen": [
+          "Weitere Prüfung: 2. Kontrolllinie"
+        ]
+      }
+    },
+    {
+      "name": "Eindeutige Lage: kein Hinweis 2. Kontrolllinie",
+      "eingabe": {
+        "nat": "Japan",
+        "days": 30
+      },
+      "erwartet": {
+        "level": "ok",
+        "massnahmen_nicht": [
+          "2. Kontrolllinie",
+          "Fast-ID"
+        ]
+      }
+    },
+    {
+      "name": "Titel aus Italien (Schengen) im Kurzaufenthalt",
+      "eingabe": {
+        "nat": "Indien",
+        "title": "at_other",
+        "validUntil": "2027-05-01",
+        "days": 20,
+        "issuer": "Italien",
+        "docType": "Permesso di Soggiorno"
+      },
+      "erwartet": {
+        "level": "ok",
+        "feststellungen": [
+          "Kurzaufenthalt nach Art. 21 SDÜ"
+        ]
+      }
+    },
+    {
+      "name": "Titel aus Zypern (nicht Schengen) berechtigt nicht nach Art. 21 SDÜ",
+      "eingabe": {
+        "nat": "Indien",
+        "title": "at_other",
+        "validUntil": "2027-05-01",
+        "days": 20,
+        "issuer": "Zypern"
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Ausstellerstaat wendet den Schengen-Besitzstand nicht vollständig an"
+        ],
+        "feststellungen_nicht": [
+          "Kurzaufenthalt nach Art. 21 SDÜ"
+        ]
+      }
     }
   ]
 }

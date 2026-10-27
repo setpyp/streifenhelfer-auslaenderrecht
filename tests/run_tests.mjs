@@ -28,6 +28,7 @@ for (const f of faelle) {
   const s = { ...standard, ...f.eingabe };
   for (const k of ["date", "validUntil", "entryDE"]) s[k] = toDate(s[k]);
   s.cat = catOf(s.nat);
+  s.issuerCat = s.issuer ? catOf(s.issuer) : null;
   // Sonderregelungen wie in der App: verfügbare Regeln je Staatsangehörigkeit, gewählte Regel mit Voraussetzungen
   s.sonderVerfuegbar = ["DE", "EU", "EUN", "EWR", "CH"].includes(s.cat) || !s.nat ? []
     : sonder.filter(x => x.staaten.includes("*") || x.staaten.includes(s.nat)).map(x => x.id);

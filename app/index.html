@@ -61,6 +61,7 @@ input{min-width:0}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .btn.small{min-height:36px;font-size:14px}
 #dauerBox{scroll-margin-top:72px}
+input.invalid{border-color:var(--bad);outline-color:var(--bad)}
 #dauerBox summary{cursor:pointer}
 #dauerBox summary h2{display:inline}
 .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -178,7 +179,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
   <select id="title">
     <option value="none">keiner</option>
     <option value="visa_c">Schengen-Visum (Typ C, einheitlich gültig)</option>
-    <option value="visa_ltv">Visum mit räumlich beschränkter Gültigkeit (VrG/LTV)</option>
+    <option value="visa_ltv">Visum mit räumlich beschränkter Gültigkeit (VrG / LTV)</option>
     <option value="visa_d_de">Nationales Visum D – Deutschland</option>
     <option value="visa_d_other">Nationales Visum D – anderer Schengen-Staat</option>
     <option value="at_de">Aufenthaltstitel Deutschland (AE, NE, Blaue Karte, Daueraufenthalt-EU)</option>
@@ -194,7 +195,15 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
     <div><label for="validUntil">Gültig bis</label><input type="date" id="validUntil"></div>
     <div id="visaDaysWrap"><label for="visaDays">Visum: zulässige Aufenthaltstage</label><input type="number" id="visaDays" min="1" max="90" inputmode="numeric"></div>
   </div>
-  <div id="ltvWrap" class="checks hidden"><label><input type="checkbox" id="ltvDE"> VrG/LTV ist für Deutschland gültig</label></div>
+  <div id="ltvWrap" class="checks hidden"><div class="hint"><b>VrG</b> = Visum mit räumlich beschränkter Gültigkeit, englisch <b>LTV</b> = <i>Limited Territorial Validity</i>: gilt nur für die auf der Visummarke genannten Schengen-Staaten (Art. 25 Visakodex), nicht für den ganzen Schengen-Raum.</div>
+    <label><input type="checkbox" id="ltvDE"> Deutschland ist auf der Visummarke als gültig eingetragen</label></div>
+  <div id="issuerWrap" class="hidden">
+    <div class="row">
+      <div><label for="issuer">Ausstellerstaat</label><select id="issuer"></select></div>
+      <div><label for="docType">Dokumentenart</label><input type="text" id="docType" maxlength="80" placeholder="z. B. Permesso di Soggiorno, Rot-Weiß-Rot-Karte"></div>
+    </div>
+    <div class="hint">Muster echter Dokumente je Ausstellerstaat: <a href="https://www.consilium.europa.eu/prado/" target="_blank" rel="noopener">PRADO</a> (EU-Register echter Identitäts- und Reisedokumente, online).</div>
+  </div>
   <div id="restrictWrap" class="checks hidden"><label><input type="checkbox" id="restrictViol"> Verstoß gegen räumliche Beschränkung erkennbar</label>
     <label><input type="checkbox" id="restrictRepeat"> wiederholter Verstoß (Vorverstoß bekannt)</label></div>
   <label for="purpose">Angegebener Aufenthaltszweck</label>
@@ -214,8 +223,8 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
 
 <section class="card">
 <details id="dauerBox">
-  <summary><h2>4 · Aufenthaltsdauer (90/180)</h2> <span class="hint">– nur bei Bedarf erfassen</span></summary>
-  <div class="hint">Aufenthalte im Schengen-Raum eintragen (Ein- und Ausreisetag zählen mit, Art. 6 Abs. 2 SGK). „Bis“ leer = andauernd.</div>
+  <summary><h2>4 · Aufenthaltsdauer (90/180)</h2> <span class="hint" id="dauerSummaryHint">– wird freigegeben, wenn die Bewertung sie braucht</span></summary>
+  <div class="hint">Aufenthalte im Schengen-Raum eintragen, Datum als <b>ttmmjjjj</b> (z. B. 05032026 → 05.03.2026). Ein- und Ausreisetag zählen mit (Art. 6 Abs. 2 SGK). „Bis“ leer = andauernd.</div>
   <div id="stays"></div>
   <button type="button" class="btn" id="addStay">+ Aufenthalt</button>
   <div class="row">
@@ -223,7 +232,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
     <div><label>Berechnet (180-Tage-Fenster)</label><input type="text" id="calcDays" readonly></div>
   </div>
   <label for="entryDE">Einreise nach Deutschland am</label>
-  <input type="date" id="entryDE">
+  <input type="text" id="entryDE" class="datum" inputmode="numeric" maxlength="10" placeholder="ttmmjjjj">
 </details>
 </section>
 
@@ -232,7 +241,9 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
   <div class="checks">
     <label><input type="checkbox" id="asylum"> Asyl-/Schutzgesuch geäußert (auch sinngemäß, in jeder Sprache)</label>
     <label><input type="checkbox" id="sisRefusal"> Treffer: Einreise-/Aufenthaltsverweigerung (SIS Art. 24 VO 2018/1861) bzw. Einreise- und Aufenthaltsverbot (§ 11 AufenthG)</label>
-    <label><input type="checkbox" id="warrant"> Treffer: Festnahme / Haftbefehl / Aufenthaltsermittlung</label>
+    <label><input type="checkbox" id="warrant"> Treffer: Festnahme (Haftbefehl)</label>
+    <label><input type="checkbox" id="aufenthaltsermittlung"> Treffer: Aufenthaltsermittlung</label>
+    <label><input type="checkbox" id="rueckkehr"> Treffer: Rückkehrentscheidung (SIS-Ausschreibung zur Rückkehr)</label>
     <label><input type="checkbox" id="working"> Erwerbstätigkeit festgestellt</label>
     <label><input type="checkbox" id="smuggling"> Anhaltspunkte für Schleusung (§ 96 AufenthG)</label>
     <label><input type="checkbox" id="identityUnclear"> Identität zweifelhaft / widersprüchliche Angaben</label>
@@ -471,12 +482,25 @@ function buildNat(){
 }
 function addStay(from="", to=""){
   const div = document.createElement("div"); div.className="stay";
-  div.innerHTML = `<input type="date" aria-label="Einreise" value="${esc(from)}"><input type="date" aria-label="Ausreise" value="${esc(to)}"><button type="button" aria-label="Entfernen">✕</button>`;
+  div.innerHTML = `<input type="text" class="datum" inputmode="numeric" maxlength="10" placeholder="von ttmmjjjj" aria-label="Einreise" value="${esc(from)}"><input type="text" class="datum" inputmode="numeric" maxlength="10" placeholder="bis ttmmjjjj" aria-label="Ausreise" value="${esc(to)}"><button type="button" aria-label="Entfernen">✕</button>`;
   div.querySelector("button").onclick = ()=>{ div.remove(); refresh(); };
-  div.querySelectorAll("input").forEach(i=>i.addEventListener("change",refresh));
+  div.querySelectorAll("input").forEach(i=>{ datumsFeld(i); i.addEventListener("input",refresh); });
   $("stays").appendChild(div);
 }
-function readStays(){ return [...document.querySelectorAll("#stays .stay")].map(d=>{ const [a,b]=d.querySelectorAll("input"); return {from:toDate(a.value), to:toDate(b.value)}; }); }
+function readStays(){ return [...document.querySelectorAll("#stays .stay")].map(d=>{ const [a,b]=d.querySelectorAll("input"); return {from:parseDE(a.value), to:parseDE(b.value)}; }); }
+/* Datumseingabe ttmmjjjj ohne Kalender, Anzeige tt.mm.jjjj */
+function parseDE(v){
+  const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(v||""); if(!m) return null;
+  const d=new Date(+m[3], +m[2]-1, +m[1]);
+  return (d.getDate()===+m[1] && d.getMonth()===+m[2]-1) ? d : null;
+}
+function datumsFeld(el){
+  el.addEventListener("input",()=>{
+    const z=el.value.replace(/\D/g,"").slice(0,8);
+    el.value = z.length>4 ? `${z.slice(0,2)}.${z.slice(2,4)}.${z.slice(4)}` : z.length>2 ? `${z.slice(0,2)}.${z.slice(2)}` : z;
+    el.classList.toggle("invalid", z.length===8 && !parseDE(el.value));
+  });
+}
 /* ---------- Sonderregelungen ---------- */
 function sonderFuer(nat){
   const cat=catOf(nat);
@@ -505,6 +529,24 @@ function sonderSachverhalt(){
   return {regel:r, erfuellt: r.voraussetzungen.length>0 && offen.length===0, offen};
 }
 
+/* ---------- Abschnitt 4 nur bei Relevanz ---------- */
+let dauerFrei=false;
+function dauerFreigeben(frei){
+  dauerFrei=frei;
+  $("dauerSummaryHint").textContent = frei ? "– für diese Bewertung erforderlich" : "– wird freigegeben, wenn die Bewertung sie braucht";
+  if(!frei) $("dauerBox").open=false;
+}
+$("dauerBox").querySelector("summary").addEventListener("click",e=>{ if(!dauerFrei && !$("dauerBox").open) e.preventDefault(); });
+
+/* ---------- Ausstellerstaat (Titel/Visum eines anderen Staats) ---------- */
+function issuerRelevant(){ return ["visa_d_other","at_other","eu_card"].includes($("title").value); }
+function buildIssuer(){
+  const sel=$("issuer"), keep=sel.value;
+  const staaten=Object.keys(CAT).filter(n=>["EU","EUN","EWR","CH"].includes(CAT[n])).sort((a,b)=>a.localeCompare(b,"de"));
+  sel.innerHTML='<option value="">– auswählen –</option>'+staaten.map(n=>`<option value="${esc(n)}">${esc(n)}${CAT[n]==="EUN"?" (nicht Schengen)":""}</option>`).join("");
+  sel.value=keep;
+}
+
 /* ---------- Kontrollsituation merken (nur installierte App) ---------- */
 const IST_APP = matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
 const MERKEN = ["place","from"];
@@ -524,6 +566,7 @@ function refresh(){
   $("validWrap").classList.toggle("hidden", ["none","gestattung"].includes(t));
   $("visaDaysWrap").classList.toggle("hidden", !["visa_c","visa_ltv"].includes(t));
   $("ltvWrap").classList.toggle("hidden", t!=="visa_ltv");
+  $("issuerWrap").classList.toggle("hidden", !issuerRelevant());
   $("restrictWrap").classList.toggle("hidden", !["gestattung","duldung"].includes(t));
   $("workWrap").classList.toggle("hidden", !$("working").checked);
   const st=readStays(), d = daysIn180(st, toDate($("date").value));
@@ -540,8 +583,10 @@ function collect(){
     iddoc:$("iddoc").value, title:$("title").value, validUntil:toDate($("validUntil").value),
     visaDays: $("visaDays").value===""?90:parseInt($("visaDays").value,10), ltvDE:$("ltvDE").checked,
     restrictViol:$("restrictViol").checked, restrictRepeat:$("restrictRepeat").checked,
-    days: manual!==null ? manual : calc, entryDE: toDate($("entryDE").value),
-    asylum:$("asylum").checked, sisRefusal:$("sisRefusal").checked, warrant:$("warrant").checked,
+    days: manual!==null ? manual : calc, entryDE: parseDE($("entryDE").value),
+    issuer: issuerRelevant() ? $("issuer").value : "", issuerCat: issuerRelevant() && $("issuer").value ? catOf($("issuer").value) : null,
+    docType: issuerRelevant() ? $("docType").value.trim() : "",
+    asylum:$("asylum").checked, sisRefusal:$("sisRefusal").checked, warrant:$("warrant").checked, aufenthaltsermittlung:$("aufenthaltsermittlung").checked, rueckkehr:$("rueckkehr").checked,
     working:$("working").checked, smuggling:$("smuggling").checked, nomeans:$("nomeans").checked,
     identityUnclear:$("identityUnclear").checked,
     // Freitext ohne Einfluss auf die Bewertung, nur für Anzeige und Vermerk
@@ -581,7 +626,7 @@ function render(scroll=true){
     block("Benachrichtigungen",R.notify)+block("Hinweise",R.notes)+
     (R.path.length?`<div class="block"><h4>Prüfpfad</h4><ol class="path">${R.path.map(p=>`<li>${esc(p)}</li>`).join("")}</ol></div>`:"");
   if(R.dauerRelevant && s.days===null){
-    $("dauerBox").open = true;
+    dauerFreigeben(true); $("dauerBox").open = true;
     $("dauerJetzt").onclick = ()=>{ $("dauerBox").scrollIntoView({behavior:"smooth",block:"start"}); $("manualDays").focus({preventScroll:true}); };
   }
   if(scroll) $("result").scrollIntoView({behavior:"smooth",block:"start"});
@@ -684,6 +729,7 @@ function vermerk(){
   L.push("STREIFENHELFER – Bewertung (Entscheidungshilfe, nicht verbindlich)", $("normstand").textContent, "Kontrolldatum: "+fmt(s.date)+" · Ort: "+$("place").selectedOptions[0].text);
   L.push("Staatsangehörigkeit: "+(s.nat||"–")+(s.age!==null?" · Alter: "+s.age:""));
   L.push("Dokument: "+$("iddoc").selectedOptions[0].text+" · Titel: "+$("title").selectedOptions[0].text+(s.validUntil?" (gültig bis "+fmt(s.validUntil)+")":""));
+  if(s.issuer || s.docType) L.push("Ausstellerstaat: "+(s.issuer||"–")+(s.docType?" · Dokumentenart: "+s.docType:""));
   if(s.days!==null) L.push("Aufenthaltstage im 180-Tage-Zeitraum: "+s.days);
   if(s.sonder) L.push("Sonderstatus: "+s.sonder.regel.titel+(s.sonder.regel.typ==="befreiung"?(s.sonder.erfuellt?" – Voraussetzungen bestätigt":" – nicht bestätigt: "+s.sonder.offen.join("; ")):""));
   if(s.beschaeftigung) L.push("", "ANGABEN ZUR BESCHÄFTIGUNG", s.beschaeftigung);
@@ -706,7 +752,7 @@ function vermerk(){
     $("evalBtn").disabled=true; $("copyBtn").disabled=true;
     return;
   }
-  initData(); kontrolleLaden();
+  initData(); buildIssuer(); kontrolleLaden(); datumsFeld($("entryDE"));
   // gespeicherte Weisungen laden
   try{ const db=await IDB.open(); await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").openCursor(); q.onsuccess=()=>{ const c=q.result; if(!c) return res(); if(String(c.key).startsWith("w:")) WPKGS[String(c.key).slice(2)]=c.value; c.continue(); }; q.onerror=()=>res(); }); }catch(e){}
   $("wServer").value = LS.get("wServer",""); $("wAuto").checked = LS.get("wAuto",false); $("wPersist").checked = LS.get("wPersist",true);
@@ -721,7 +767,7 @@ $("age").addEventListener("input",refresh);
 $("addStay").onclick=()=>addStay();
 $("evalBtn").onclick=()=>render();
 $("sonder").addEventListener("change",renderSonderInfo);
-$("resetBtn").onclick=()=>{ $("f").reset(); kontrolleLaden(); $("dauerBox").open=false; $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
+$("resetBtn").onclick=()=>{ $("f").reset(); kontrolleLaden(); dauerFreigeben(false); $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
 $("copyBtn").onclick=async()=>{ const t=vermerk(); try{ await navigator.clipboard.writeText(t); $("copyBtn").textContent="Kopiert ✓"; }catch(e){ prompt("Vermerk:",t); } setTimeout(()=>$("copyBtn").textContent="Vermerk kopieren",1500); };
 $("themeBtn").onclick=()=>{ const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark?"light":"dark"; };
 document.addEventListener("click",e=>{

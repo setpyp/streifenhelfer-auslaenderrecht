@@ -30,6 +30,7 @@
     "EES-VO":     {"name": "Einreise-/Ausreisesystem – VO (EU) 2017/2226", "aliase": ["EES-VO", "2017/2226"], "quelle": "eurlex", "celex": "32017R2226", "gliederung": "Art."},
     "ETIAS-VO":   {"name": "ETIAS – VO (EU) 2018/1240", "aliase": ["ETIAS-VO", "2018/1240"], "quelle": "eurlex", "celex": "32018R1240", "gliederung": "Art."},
     "SIS-Grenze": {"name": "SIS Grenzkontrollen – VO (EU) 2018/1861", "aliase": ["2018/1861"], "quelle": "eurlex", "celex": "32018R1861", "gliederung": "Art."},
+    "SIS-Rückkehr":{"name": "SIS Rückkehr – VO (EU) 2018/1860", "aliase": ["2018/1860"], "quelle": "eurlex", "celex": "32018R1860", "gliederung": "Art."},
     "SIS-Polizei":{"name": "SIS Polizei/Justiz – VO (EU) 2018/1862", "aliase": ["2018/1862"], "quelle": "eurlex", "celex": "32018R1862", "gliederung": "Art."},
     "FreizügRL":  {"name": "Freizügigkeitsrichtlinie 2004/38/EG", "aliase": ["2004/38"], "quelle": "eurlex", "celex": "32004L0038", "gliederung": "Art."},
     "RückfRL":    {"name": "Rückführungsrichtlinie 2008/115/EG", "aliase": ["2008/115"], "quelle": "eurlex", "celex": "32008L0115", "gliederung": "Art."},

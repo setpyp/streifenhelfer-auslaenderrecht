@@ -223,15 +223,21 @@ def split_articles_by_text(page):
     return normen
 
 
-def load_eurlex(celex, original_erlaubt=False):
-    """original_erlaubt: Ist die Suche nach konsolidierten Fassungen nicht möglich, darf die
-    Amtsblattfassung verwendet werden – nur wenn es noch keine (konsolidierte) Vorfassung gibt."""
+def load_eurlex(celex, original_erlaubt=False, bekannte_fassung=""):
+    """Ist die Suche nach konsolidierten Fassungen nicht möglich (EUR-Lex gesperrt), wird die
+    bisher bekannte konsolidierte Fassung erneut geladen (kein Fassungswechsel). Die
+    Amtsblattfassung ist nur erlaubt, wenn es noch keine (konsolidierte) Vorfassung gibt."""
     try:
         cons = eurlex_latest_consolidated(celex)
     except Exception:
-        if not original_erlaubt:
+        if bekannte_fassung.startswith("0"):
+            cons = bekannte_fassung
+        elif bekannte_fassung == celex:
+            cons = None  # bisher schon Amtsblattfassung: dieselbe Fassung erneut laden
+        elif not original_erlaubt:
             raise
-        cons = None
+        else:
+            cons = None
     used = cons or celex
     try:
         page = eurlex_html(used).decode("utf-8", "replace")
@@ -354,7 +360,7 @@ def main():
             elif g["quelle"] == "eurlex":
                 meta["url"] = f"https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:{g['celex']}"
                 alt_fassung = vorher.get("gesetze", {}).get(law, {}).get("fassung") or ""
-                normen, info = load_eurlex(g["celex"], original_erlaubt=not alt_fassung)
+                normen, info = load_eurlex(g["celex"], original_erlaubt=not alt_fassung, bekannte_fassung=alt_fassung)
                 if not normen:
                     raise RuntimeError("keine Artikel erkannt (Seite geändert oder gesperrt?)")
                 # bisher konsolidiert -> neue Fassung muss ebenfalls konsolidiert und mindestens gleich neu sein
