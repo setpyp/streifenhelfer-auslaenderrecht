@@ -19,6 +19,7 @@ function evaluate(s){
   const isExit = s.place==="exit";
   const minor = s.age!==null && s.age<18;
 
+  if(!s.place){ R.level="warn"; R.head="Ort/Lage der Kontrolle fehlt"; R.sub="Bitte unter 1 · Kontrollsituation auswählen."; return R; }
   if(!s.nat){ R.level="warn"; R.head="Staatsangehörigkeit fehlt"; R.sub="Bitte Staatsangehörigkeit (ggf. „ungeklärt“) auswählen."; return R; }
 
   /* ---- Rechtsgrundlage der Kontrolle ---- */
@@ -114,7 +115,7 @@ function evaluate(s){
       basis = s.title==="at_other" ? "Aufenthaltstitel anderer Schengen-Staat" : "Nationales Visum anderer Schengen-Staat";
       if(!validTitle){ lawful=false; F("bad",basis+" abgelaufen","Kein Recht zur Einreise/zum Aufenthalt in Deutschland.",["Art. 21 SDÜ"]); }
       else if(dayOK===false){ lawful=false; F("bad","90/180-Tage überschritten","Kurzaufenthalt nach Art. 21 SDÜ nur bis 90 Tage je 180 Tage.",["Art. 21 SDÜ","Art. 6 Abs. 1 SGK"]); }
-      else { lawful = passOK ? (dayOK===null?null:true) : false;
+      else { lawful = passOK ? (dayOK===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
         F(lawful===false?"bad":(lawful?"ok":"warn"),"Kurzaufenthalt nach Art. 21 SDÜ","Bis 90 Tage je 180 Tage bei gültigem Reisedokument; keine Erwerbstätigkeit (Ausnahmen § 17 Abs. 2, 3 AufenthV).",["Art. 21 SDÜ","Art. 6 Abs. 1 SGK","§ 15 AufenthV","§ 17 AufenthV"]); }
       break;
     case "visa_c":
@@ -123,7 +124,7 @@ function evaluate(s){
       if(s.title==="visa_ltv" && !s.ltvDE){ lawful=false; F("bad","VrG/LTV-Visum nicht für Deutschland gültig","Visum berechtigt nur zum Aufenthalt in den genannten Staaten.",["Art. 25 Visakodex"]); break; }
       if(!validTitle){ lawful=false; F("bad","Visum abgelaufen (Overstay)","Gültigkeitsdauer überschritten.",["Art. 6 SGK","§ 4 Abs. 1 AufenthG"]); }
       else if(s.days!==null && s.days > s.visaDays){ lawful=false; F("bad","Zulässige Aufenthaltsdauer des Visums überschritten",`${s.days} Tage genutzt, ${s.visaDays} erlaubt.`,["Art. 24 Visakodex","§ 4 Abs. 1 AufenthG"]); }
-      else { lawful = passOK ? (s.days===null?null:true) : false;
+      else { lawful = passOK ? (s.days===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
         F(lawful===false?"bad":(lawful?"ok":"warn"),"Gültiges Schengen-Visum","Nur Kurzaufenthalt zum Visumzweck; Erwerbstätigkeit grds. nicht gestattet. VIS-Abfrage empfohlen.",["§ 6 Abs. 1 Nr. 1 AufenthG","Art. 24 Visakodex","Art. 18 VIS-VO"]);
         if(s.purpose==="work"||s.purpose==="family"||s.working) F("warn","Zweckwidrigkeit","Annullierung/Aufhebung des Visums durch die Grenzbehörde im Zusammenhang mit Zurückweisung/Zurückschiebung/Abschiebung möglich.",["Art. 34 Visakodex","§ 71 Abs. 3 Nr. 3 AufenthG"]);
       }
@@ -171,7 +172,7 @@ function evaluate(s){
         basis="Visumfreier Kurzaufenthalt";
         if(dayOK===false){ lawful=false; F("bad","90/180-Tage überschritten (Overstay)",`${s.days} Tage im Bezugszeitraum.`,["Art. 6 Abs. 1 SGK","Art. 20 SDÜ","Art. 4 2018/1806"]);
           if((s.sonderVerfuegbar||[]).includes("anlage-a-sichtvermerk")) H("Ältere Sichtvermerksabkommen","Für diese Staatsangehörigkeit besteht ein älteres Sichtvermerksabkommen (Anlage A AufenthV), das längere Aufenthalte in Deutschland erlauben kann – unter „Sonderstatus“ prüfen.",["§ 16 AufenthV","AufenthV Anlage A","Art. 20 SDÜ"]); }
-        else { lawful = passOK ? (dayOK===null?null:true) : false;
+        else { lawful = passOK ? (dayOK===null?null:true) : false; if(lawful===null) R.dauerRelevant=true;
           F(lawful===false?"bad":(lawful?"ok":"warn"),"Visumfreier Kurzaufenthalt","Bis 90 Tage je 180 Tage; Einreisevoraussetzungen Art. 6 SGK (Zweck, Mittel, keine Ausschreibung). Nach Inbetriebnahme von ETIAS zusätzlich gültige Reisegenehmigung erforderlich.",["Art. 4 2018/1806","Art. 6 SGK","Art. 20 SDÜ","§ 15 AufenthV","ETIAS-VO"],true);
           if(dayOK===null) H("Aufenthaltsdauer unbekannt","Ein-/Ausreisestempel bzw. EES-Abfrage zur Berechnung heranziehen.",["Art. 6 Abs. 2 SGK","EES-VO"]);
         }

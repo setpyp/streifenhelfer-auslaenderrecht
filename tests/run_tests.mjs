@@ -42,6 +42,7 @@ for (const f of faelle) {
   const e = f.erwartet;
   if (e.level && R.level !== e.level) errs.push(`level: erwartet ${e.level}, ist ${R.level}`);
   if (e.head && R.head !== e.head) errs.push(`head: erwartet "${e.head}", ist "${R.head}"`);
+  if (e.dauerRelevant !== undefined && !!R.dauerRelevant !== e.dauerRelevant) errs.push(`dauerRelevant: erwartet ${e.dauerRelevant}, ist ${!!R.dauerRelevant}`);
   for (const [key, part] of checks) {
     const titles = R[part].map(i => i.t);
     for (const want of e[key] || []) if (!titles.some(t => t.includes(want))) errs.push(`${key}: fehlt "${want}" (vorhanden: ${titles.join(" | ") || "–"})`);

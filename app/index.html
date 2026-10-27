@@ -60,6 +60,9 @@ input{min-width:0}
 .stay button,.btn{min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font-size:15px;padding:0 12px;cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .btn.small{min-height:36px;font-size:14px}
+#dauerBox{scroll-margin-top:72px}
+#dauerBox summary{cursor:pointer}
+#dauerBox summary h2{display:inline}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .hint{font-size:12px;color:var(--muted);margin-top:4px}
 #result{margin-top:16px}
@@ -119,26 +122,12 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
 <div class="grid">
 
 <section class="card">
-  <h2>1 · Person</h2>
-  <label for="nat">Staatsangehörigkeit</label>
-  <select id="nat"></select>
-  <div class="hint" id="natHint"></div>
-  <div class="row">
-    <div><label for="age">Alter (Jahre)</label><input type="number" id="age" min="0" max="120" inputmode="numeric"></div>
-    <div id="accWrap" class="hidden"><label for="acc">Begleitung</label>
-      <select id="acc"><option value="yes">mit Personensorgeberechtigtem</option><option value="no">unbegleitet</option></select></div>
-  </div>
-  <div class="checks">
-    <label><input type="checkbox" id="eufam"> Familienangehöriger eines Unionsbürgers (begleitet/nachziehend)</label>
-  </div>
-</section>
-
-<section class="card">
-  <h2>2 · Kontrollsituation</h2>
+  <h2>1 · Kontrollsituation</h2>
   <label for="date">Kontrolldatum</label>
   <input type="date" id="date">
   <label for="place">Ort / Lage</label>
   <select id="place">
+    <option value="">– auswählen –</option>
     <option value="internal_border">Binnengrenze – Einreisekontrolle (vorübergehende Grenzkontrolle)</option>
     <option value="external_border">Außengrenze – Flughafen / Seehafen (Grenzübergangsstelle)</option>
     <option value="border_area">Grenzgebiet bis 30 km (Binnengrenze)</option>
@@ -156,16 +145,21 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
   <div class="checks">
     <label><input type="checkbox" id="nearEntry"> Aufgriff grenznah und in unmittelbarem zeitlichen Zusammenhang mit der Einreise</label>
   </div>
-  <label for="purpose">Angegebener Aufenthaltszweck</label>
-  <select id="purpose">
-    <option value="tourism">Besuch / Tourismus / Geschäftsreise</option>
-    <option value="transit">Durchreise</option>
-    <option value="work">Erwerbstätigkeit</option>
-    <option value="study">Studium / Ausbildung</option>
-    <option value="family">Familiennachzug / Wohnsitz</option>
-    <option value="protection">Schutzsuche</option>
-    <option value="unknown">unklar / keine Angabe</option>
-  </select>
+</section>
+
+<section class="card">
+  <h2>2 · Person</h2>
+  <label for="nat">Staatsangehörigkeit</label>
+  <select id="nat"></select>
+  <div class="hint" id="natHint"></div>
+  <div class="row">
+    <div><label for="age">Alter (Jahre)</label><input type="number" id="age" min="0" max="120" inputmode="numeric"></div>
+    <div id="accWrap" class="hidden"><label for="acc">Begleitung</label>
+      <select id="acc"><option value="yes">mit Personensorgeberechtigtem</option><option value="no">unbegleitet</option></select></div>
+  </div>
+  <div class="checks">
+    <label><input type="checkbox" id="eufam"> Familienangehöriger eines Unionsbürgers (begleitet/nachziehend)</label>
+  </div>
 </section>
 
 <section class="card">
@@ -203,10 +197,24 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
   <div id="ltvWrap" class="checks hidden"><label><input type="checkbox" id="ltvDE"> VrG/LTV ist für Deutschland gültig</label></div>
   <div id="restrictWrap" class="checks hidden"><label><input type="checkbox" id="restrictViol"> Verstoß gegen räumliche Beschränkung erkennbar</label>
     <label><input type="checkbox" id="restrictRepeat"> wiederholter Verstoß (Vorverstoß bekannt)</label></div>
+  <label for="purpose">Angegebener Aufenthaltszweck</label>
+  <select id="purpose">
+    <option value="tourism">Besuch / Tourismus / Geschäftsreise</option>
+    <option value="transit">Durchreise</option>
+    <option value="work">Erwerbstätigkeit</option>
+    <option value="study">Studium / Ausbildung</option>
+    <option value="family">Familiennachzug / Wohnsitz</option>
+    <option value="protection">Schutzsuche</option>
+    <option value="unknown">unklar / keine Angabe</option>
+  </select>
+  <div class="checks">
+    <label><input type="checkbox" id="nomeans"> Keine ausreichenden Mittel zur Bestreitung des Lebensunterhalts / Rückreise</label>
+  </div>
 </section>
 
 <section class="card">
-  <h2>4 · Aufenthaltsdauer (90/180)</h2>
+<details id="dauerBox">
+  <summary><h2>4 · Aufenthaltsdauer (90/180)</h2> <span class="hint">– nur bei Bedarf erfassen</span></summary>
   <div class="hint">Aufenthalte im Schengen-Raum eintragen (Ein- und Ausreisetag zählen mit, Art. 6 Abs. 2 SGK). „Bis“ leer = andauernd.</div>
   <div id="stays"></div>
   <button type="button" class="btn" id="addStay">+ Aufenthalt</button>
@@ -216,6 +224,7 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
   </div>
   <label for="entryDE">Einreise nach Deutschland am</label>
   <input type="date" id="entryDE">
+</details>
 </section>
 
 <section class="card" style="grid-column:1/-1">
@@ -226,7 +235,6 @@ legend{font-weight:600;color:var(--accent);padding:0 6px}
     <label><input type="checkbox" id="warrant"> Treffer: Festnahme / Haftbefehl / Aufenthaltsermittlung</label>
     <label><input type="checkbox" id="working"> Erwerbstätigkeit festgestellt</label>
     <label><input type="checkbox" id="smuggling"> Anhaltspunkte für Schleusung (§ 96 AufenthG)</label>
-    <label><input type="checkbox" id="nomeans"> Keine ausreichenden Mittel zur Bestreitung des Lebensunterhalts / Rückreise</label>
     <label><input type="checkbox" id="identityUnclear"> Identität zweifelhaft / widersprüchliche Angaben</label>
   </div>
   <div id="workWrap" class="hidden">
@@ -497,6 +505,15 @@ function sonderSachverhalt(){
   return {regel:r, erfuellt: r.voraussetzungen.length>0 && offen.length===0, offen};
 }
 
+/* ---------- Kontrollsituation merken (nur installierte App) ---------- */
+const IST_APP = matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+const MERKEN = ["place","from"];
+function kontrolleLaden(){
+  if(!IST_APP) return;
+  for(const id of MERKEN){ const v=LS.get("kontrolle."+id,null); if(v!==null && [...$(id).options].some(o=>o.value===v)) $(id).value=v; }
+}
+for(const id of MERKEN) $(id).addEventListener("change",()=>{ if(IST_APP) LS.set("kontrolle."+id,$(id).value); });
+
 function refresh(){
   const n=$("nat").value, cat = catOf(n);
   if($("sonder").dataset.nat!==n){ $("sonder").dataset.nat=n; buildSonder(); }
@@ -558,10 +575,15 @@ function render(scroll=true){
   const s = collect(); const R = evaluate(s); lastR=R; lastS=s;
   $("result").innerHTML =
     `<div class="status ${R.level}"><h3>${esc(R.head)}</h3><p>${esc(R.sub)}</p></div>`+
+    (R.dauerRelevant && s.days===null ? `<div class="banner info"><b>Die Aufenthaltsdauer entscheidet die Bewertung.</b> Bitte unter 4 die Aufenthalte oder die Tage im 180-Tage-Zeitraum erfassen und erneut bewerten. <button type="button" class="btn small" id="dauerJetzt">Aufenthaltsdauer erfassen</button></div>` : "")+
     remarksHTML(s)+
     block("Feststellungen",R.find)+block("Maßnahmen",R.meas)+block("Straf- und Bußgeldrecht",R.crim)+
     block("Benachrichtigungen",R.notify)+block("Hinweise",R.notes)+
     (R.path.length?`<div class="block"><h4>Prüfpfad</h4><ol class="path">${R.path.map(p=>`<li>${esc(p)}</li>`).join("")}</ol></div>`:"");
+  if(R.dauerRelevant && s.days===null){
+    $("dauerBox").open = true;
+    $("dauerJetzt").onclick = ()=>{ $("dauerBox").scrollIntoView({behavior:"smooth",block:"start"}); $("manualDays").focus({preventScroll:true}); };
+  }
   if(scroll) $("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
@@ -684,7 +706,7 @@ function vermerk(){
     $("evalBtn").disabled=true; $("copyBtn").disabled=true;
     return;
   }
-  initData();
+  initData(); kontrolleLaden();
   // gespeicherte Weisungen laden
   try{ const db=await IDB.open(); await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").openCursor(); q.onsuccess=()=>{ const c=q.result; if(!c) return res(); if(String(c.key).startsWith("w:")) WPKGS[String(c.key).slice(2)]=c.value; c.continue(); }; q.onerror=()=>res(); }); }catch(e){}
   $("wServer").value = LS.get("wServer",""); $("wAuto").checked = LS.get("wAuto",false); $("wPersist").checked = LS.get("wPersist",true);
@@ -699,7 +721,7 @@ $("age").addEventListener("input",refresh);
 $("addStay").onclick=()=>addStay();
 $("evalBtn").onclick=()=>render();
 $("sonder").addEventListener("change",renderSonderInfo);
-$("resetBtn").onclick=()=>{ $("f").reset(); $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
+$("resetBtn").onclick=()=>{ $("f").reset(); kontrolleLaden(); $("dauerBox").open=false; $("sonder").value=""; renderSonderInfo(); $("stays").innerHTML=""; addStay(); $("date").value=todayISO(); $("result").innerHTML=""; lastR=null; refresh(); window.scrollTo(0,0); };
 $("copyBtn").onclick=async()=>{ const t=vermerk(); try{ await navigator.clipboard.writeText(t); $("copyBtn").textContent="Kopiert ✓"; }catch(e){ prompt("Vermerk:",t); } setTimeout(()=>$("copyBtn").textContent="Vermerk kopieren",1500); };
 $("themeBtn").onclick=()=>{ const r=document.documentElement; const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.dataset.theme = dark?"light":"dark"; };
 document.addEventListener("click",e=>{
