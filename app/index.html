@@ -697,6 +697,8 @@ function updateHeader(){
   if(age!==null && age>STALE_DAYS) b.push(`<div class="banner bad">Rechtsdaten sind ${age} Tage alt. Bitte aktualisieren (⚙), Rechtsänderungen sind möglich.</div>`);
   if(RD.bericht && (RD.bericht.weggefallen?.length || RD.bericht.nicht_gefunden?.length))
     b.push(`<div class="banner bad">Datenpaket meldet zitierte Normen, die weggefallen oder nicht auffindbar sind: ${esc([...(RD.bericht.weggefallen||[]),...(RD.bericht.nicht_gefunden||[])].join(", "))} – Regelwerk prüfen.</div>`);
+  const alt=Object.entries(RD.gesetze).filter(([,g])=>g.nicht_aktualisiert).map(([k])=>k);
+  if(alt.length) b.push(`<div class="banner bad">Beim letzten Datenupdate waren ${alt.length} Quelle(n) nicht abrufbar, ihr Wortlaut ist evtl. veraltet: ${esc(alt.join(", "))}.</div>`);
   $("banners").innerHTML=b.join("");
 }
 function renderWList(){

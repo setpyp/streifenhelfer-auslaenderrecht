@@ -14,7 +14,7 @@
   },
   "hinweise": {
     "Vereinigtes Königreich": "Brexit: Drittstaat. Begünstigte des Austrittsabkommens besitzen „Aufenthaltsdokument-GB“ (§ 16 FreizügG/EU).",
-    "Ukraine": "Vorübergehender Schutz (RL 2001/55/EG, § 24 AufenthG) – Verlängerung bis 04.03.2027 beschlossen; aktuelle Übergangsregelungen prüfen.",
+    "Ukraine": "Vorübergehender Schutz (RL 2001/55/EG, § 24 AufenthG) bis 04.03.2028. Übergangsbefreiung nach § 2 UkraineAufenthÜV bei Einreise bis 04.12.2027 – unter „Sonderstatus“ prüfen.",
     "Türkei": "Assoziationsrecht (ARB 1/80, Stillhalteklausel) bei Inhabern deutscher Titel beachten.",
     "Vanuatu": "Visumbefreiung durch EU ausgesetzt (Aussetzungsmechanismus) – Stand prüfen.",
     "Serbien": "Visumfreiheit gilt nicht für Pässe der serbischen Koordinierungsdirektion (Kosovo-Ausstellung).",
@@ -24,6 +24,6 @@
     "Macau (SAR-Pass)": "Visumfrei nur mit Macau-SAR-Pass.",
     "Taiwan": "Visumfrei nur mit Pass, der Personalausweisnummer enthält.",
     "staatenlos": "Staatenlose ohne Wohnsitz in visumfreiem Staat: visumpflichtig; Reiseausweis für Staatenlose prüfen.",
-    "ungeklärt": "Identität und Staatsangehörigkeit klären (§ 49 AufenthG, § 23 BPolG); bis dahin wie visumpflichtig behandeln."
+    "ungeklärt": "Identität und Staatsangehörigkeit klären (§ 49 AufenthG, § 26 BPolG); bis dahin wie visumpflichtig behandeln."
   }
 }

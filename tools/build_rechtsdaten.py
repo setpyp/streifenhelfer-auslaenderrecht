@@ -172,6 +172,9 @@ def load_gii(slug):
         })
     stand = [strip_tags(s) for s in re.findall(r"<standkommentar>(.*?)</standkommentar>", xml[:20000], re.S)]
     build = re.search(r'builddate="(\d{8})', xml)
+    fund = re.search(r'<fundstelle typ="amtlich">.*?<zitstelle>(.*?)</zitstelle>', xml[:20000], re.S)
+    if fund:
+        stand.append(strip_tags(fund.group(1)))  # Fundstelle des Stammgesetzes, z. B. "2026, Nr. 318"
     return normen, {"stand": stand, "abrufdatum": build.group(1) if build else None}
 
 
