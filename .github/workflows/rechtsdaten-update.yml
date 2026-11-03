@@ -11,6 +11,7 @@ permissions:
   contents: write
   pull-requests: write
   actions: write        # zum Auslösen der CI für den Bot-PR
+  issues: write         # Meldung zu Rechtsstand und Quellausfällen
 
 concurrency:
   group: rechtsdaten-update
@@ -37,6 +38,15 @@ jobs:
           set +e
           python tools/build_rechtsdaten.py | tee /tmp/build.txt
           echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Bundesgesetzblatt prüfen (letzte 8 Tage)
+        id: bgbl
+        run: |
+          sudo apt-get install -y -qq poppler-utils > /dev/null
+          set +e
+          python tools/bgbl_monitor.py --tage 8 --bericht /tmp/bgbl.md
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          cat /tmp/bgbl.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Änderungsbericht
         id: diff
@@ -97,11 +107,28 @@ jobs:
           # Pflicht-Check "test" für den Bot-PR ausführen (PRs mit GITHUB_TOKEN lösen keine CI aus)
           gh workflow run ci.yml --ref "$BRANCH"
 
-      - name: Quellausfall melden
-        if: steps.build.outputs.exit == '2'
+      # Ein grüner Lauf heißt nicht, dass alle Texte aktuell sind: Treffer im BGBl und Quellausfälle
+      # werden deshalb als Issue gemeldet.
+      - name: Rechtsstand melden
+        if: steps.bgbl.outputs.exit != '0' || steps.build.outputs.exit == '2'
         run: |
-          echo "::warning::Mindestens eine Rechtsquelle war nicht erreichbar – für diese Gesetze wurde der bisherige Wortlaut übernommen (Details im Build-Log/PR). Der Wochenagent versucht den Abruf erneut."
-          grep -A30 "QUELLE_FEHLER" /tmp/build.txt >> "$GITHUB_STEP_SUMMARY" || true
+          {
+            cat /tmp/bgbl.md
+            if [ "${{ steps.build.outputs.exit }}" = "2" ]; then
+              echo
+              echo "## ⚠️ Quellen nicht aktualisiert"
+              echo "Für diese Quellen wurde der bisherige Wortlaut übernommen, die Texte sind evtl. veraltet. Abhilfe: tools/build_rechtsdaten.py lokal ausführen."
+              echo '```'; sed -n '/^QUELLE_FEHLER/,/^NUR_LINK/p' /tmp/build.txt | grep -v '^NUR_LINK'; echo '```'
+            fi
+          } | head -c 60000 > /tmp/meldung.md
+          cat /tmp/meldung.md >> "$GITHUB_STEP_SUMMARY"
+          gh label create rechtsstand --color b60205 --description "Rechtsstand prüfen" --force
+          NR=$(gh issue list --label rechtsstand --state open --json number -q '.[0].number')
+          if [ -n "$NR" ]; then
+            gh issue comment "$NR" --body-file /tmp/meldung.md
+          else
+            gh issue create --title "Rechtsstand prüfen" --label rechtsstand --body-file /tmp/meldung.md
+          fi
 
       - name: Fehlschlag melden
         if: steps.build.outputs.exit == '1' || steps.diff.outputs.exit == '1' || steps.tests.outputs.exit != '0'

@@ -791,6 +791,133 @@
           "Kurzaufenthalt nach Art. 21 SDÜ"
         ]
       }
+    },
+    {
+      "name": "BPolG neu: Kontrolle im Zug",
+      "eingabe": {
+        "nat": "Syrien",
+        "place": "rail"
+      },
+      "erwartet": {
+        "zitate": [
+          "§ 23 Abs. 2 BPolG",
+          "§ 26 Abs. 1 Nr. 4 BPolG"
+        ],
+        "zitate_nicht": [
+          "§ 22 Abs. 1a BPolG",
+          "§ 23 Abs. 1 Nr. 4 BPolG"
+        ]
+      }
+    },
+    {
+      "name": "BPolG neu: Grenzgebiet",
+      "eingabe": {
+        "nat": "Syrien",
+        "place": "border_area"
+      },
+      "erwartet": {
+        "zitate": [
+          "§ 26 Abs. 1 Nr. 3 BPolG"
+        ],
+        "zitate_nicht": [
+          "§ 23 Abs. 1 Nr. 3 BPolG"
+        ]
+      }
+    },
+    {
+      "name": "BPolG neu: Binnengrenze nennt Kontrolle des Verkehrs",
+      "eingabe": {
+        "nat": "Syrien",
+        "place": "internal_border"
+      },
+      "erwartet": {
+        "zitate": [
+          "§ 2 Abs. 2 Nr. 2 BPolG"
+        ],
+        "zitate_nicht": [
+          "§ 2 Abs. 2 Nr. 1 BPolG"
+        ]
+      }
+    },
+    {
+      "name": "BPolG neu: Fast-ID",
+      "eingabe": {
+        "nat": "Syrien",
+        "identityUnclear": true
+      },
+      "erwartet": {
+        "zitate": [
+          "§ 27 BPolG"
+        ],
+        "zitate_nicht": [
+          "§ 24 BPolG"
+        ]
+      }
+    },
+    {
+      "name": "Sicherungshaft nennt Zuständigkeit § 71 Abs. 3a",
+      "eingabe": {
+        "nat": "Syrien"
+      },
+      "erwartet": {
+        "massnahmen": [
+          "Festhalten / Sicherungshaft"
+        ],
+        "zitate": [
+          "§ 71 Abs. 3a AufenthG"
+        ]
+      }
+    },
+    {
+      "name": "Ukrainer: Übergangsbefreiung bestätigt",
+      "eingabe": {
+        "nat": "Ukraine",
+        "iddoc": "pass_nonbio",
+        "sonder": {
+          "id": "ukraine-befreiung",
+          "erfuellt": true
+        }
+      },
+      "erwartet": {
+        "level": "ok",
+        "feststellungen": [
+          "Befreiung: Ukraine"
+        ],
+        "zitate": [
+          "§ 2 UkraineAufenthÜV"
+        ]
+      }
+    },
+    {
+      "name": "Ukrainer: Übergangsbefreiung nicht bestätigt",
+      "eingabe": {
+        "nat": "Ukraine",
+        "iddoc": "pass_nonbio",
+        "sonder": {
+          "id": "ukraine-befreiung",
+          "erfuellt": false
+        }
+      },
+      "erwartet": {
+        "level": "bad",
+        "feststellungen": [
+          "Befreiung nicht anwendbar"
+        ]
+      }
+    },
+    {
+      "name": "Vorübergehender Schutz nennt Beschluss 2026/1912",
+      "eingabe": {
+        "nat": "Ukraine",
+        "title": "p24",
+        "validUntil": "2027-12-01"
+      },
+      "erwartet": {
+        "level": "ok",
+        "zitate": [
+          "Art. 1, 2 2026/1912"
+        ]
+      }
     }
   ]
 }

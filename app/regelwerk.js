@@ -24,13 +24,13 @@ function evaluate(s){
 
   /* ---- Rechtsgrundlage der Kontrolle ---- */
   const ctrlBasis = {
-    internal_border:["Grenzkontrolle bei vorübergehend wiedereingeführten Binnengrenzkontrollen",["Art. 25, 32 SGK","§ 2 Abs. 2 Nr. 1 BPolG","§ 13 AufenthG"]],
-    external_border:["Grenzübertrittskontrolle an der Außengrenze",["Art. 8 SGK","§ 2 Abs. 2 Nr. 1 BPolG","§ 13 AufenthG","Art. 6 EES-VO"]],
-    border_area:["Identitätsfeststellung im Grenzgebiet (30 km)",["§ 23 Abs. 1 Nr. 3 BPolG","Art. 23 SGK"]],
-    rail:["Befragung/Identitätsfeststellung Bahnanlagen",["§ 22 Abs. 1a BPolG","§ 23 Abs. 1 Nr. 4 BPolG","§ 3 BPolG"]],
-    airport_inland:["Befragung im Flughafen (Schengen-Binnenflug)",["§ 22 Abs. 1a BPolG","§ 4 BPolG"]],
+    internal_border:["Grenzkontrolle bei vorübergehend wiedereingeführten Binnengrenzkontrollen",["Art. 25, 32 SGK","§ 2 Abs. 2 Nr. 2 BPolG","§ 13 AufenthG"]],
+    external_border:["Grenzübertrittskontrolle an der Außengrenze",["Art. 8 SGK","§ 2 Abs. 2 Nr. 2 BPolG","§ 13 AufenthG","Art. 6 EES-VO"]],
+    border_area:["Identitätsfeststellung im Grenzgebiet (30 km)",["§ 26 Abs. 1 Nr. 3 BPolG","Art. 23 SGK"]],
+    rail:["Befragung/Identitätsfeststellung Bahnanlagen",["§ 23 Abs. 2 BPolG","§ 26 Abs. 1 Nr. 4 BPolG","§ 3 BPolG"]],
+    airport_inland:["Befragung im Flughafen (Schengen-Binnenflug)",["§ 23 Abs. 2 BPolG","§ 4 BPolG"]],
     exit:["Ausreisekontrolle",["Art. 8 Abs. 3 SGK","§ 13 AufenthG"]],
-    inland:["Kontrolle im Inland – Zuständigkeit prüfen",["§ 1 BPolG","§ 64 BPolG"]]
+    inland:["Kontrolle im Inland – Zuständigkeit prüfen",["§ 1 BPolG","§ 99 Abs. 1 BPolG"]]
   }[s.place];
   M("info","Rechtsgrundlage der Kontrolle: "+ctrlBasis[0],"Anlassunabhängige Kontrollen diskriminierungsfrei durchführen (keine Auswahl allein nach Hautfarbe/Herkunft); Lageerkenntnisse dokumentieren. Kontrollen im Binnengrenzgebiet dürfen nicht die gleiche Wirkung wie Grenzübertrittskontrollen haben.",[...ctrlBasis[1],"Art. 3 Abs. 3 GG"], !atBorderEntry && !isExit);
 
@@ -43,7 +43,7 @@ function evaluate(s){
     R.level="ok"; R.head="Deutsche/r Staatsangehörige/r"; R.sub="Aufenthaltsrecht kraft Staatsangehörigkeit. AufenthG nicht anwendbar.";
     F("ok","Kein Ausländer","Auch bei Mehrstaatigkeit gilt die Person als Deutsche/r.",["§ 2 Abs. 1 AufenthG","Art. 116 Abs. 1 GG"]);
     if(["none","expired"].includes(s.iddoc)) F("warn","Ausweis-/Passpflicht","Pflicht zum Besitz, nicht zum Mitführen im Inland. Beim Grenzübertritt über eine Auslandsgrenze Pass oder Personalausweis erforderlich.",["§ 1 PAuswG","§ 1 PassG","§ 32 PAuswG","§ 25 PassG"],true);
-    M("info","Identitätsfeststellung","Bei fehlendem Dokument Identität anderweitig feststellen.",["§ 23 Abs. 3 BPolG","§ 24 BPolG"]);
+    M("info","Identitätsfeststellung","Bei fehlendem Dokument Identität anderweitig feststellen.",["§ 26 Abs. 3 BPolG","§ 27 BPolG"]);
     if(s.identityUnclear) hinweisFastId(M);
     return R;
   }
@@ -138,7 +138,7 @@ function evaluate(s){
       break;
     case "p24":
       basis="Vorübergehender Schutz"; lawful = validTitle?true:null;
-      F(lawful?"ok":"warn","Vorübergehender Schutz","Aufenthalt rechtmäßig; Erwerbstätigkeit erlaubt.",["§ 24 AufenthG","2001/55","2022/382"],true);
+      F(lawful?"ok":"warn","Vorübergehender Schutz","Aufenthalt rechtmäßig; Erwerbstätigkeit erlaubt. EU-weit verlängert bis 04.03.2028. Seit 31.07.2026 wird Schutz nur noch gewährt, wenn die militärischen Pflichten in der Ukraine eingehalten sind (Bestandsschutz für Personen, die am 30.07.2026 bereits Schutz genossen und ihn fortlaufend behalten haben).",["§ 24 AufenthG","2001/55","2022/382","Art. 1, 2 2026/1912"],true);
       break;
     case "gestattung":
       basis="Aufenthaltsgestattung"; lawful=true;
@@ -158,6 +158,7 @@ function evaluate(s){
         if(s.restrictRepeat) C("bad","Wiederholter Verstoß gegen räumliche Beschränkung","Straftat.",["§ 95 Abs. 1 Nr. 7 AufenthG","§ 61 Abs. 1 AufenthG"]);
         else C("warn","Verstoß gegen räumliche Beschränkung","Ordnungswidrigkeit.",["§ 98 Abs. 3 Nr. 5b AufenthG","§ 61 Abs. 1 AufenthG"]);
       }
+      H("Zuständigkeit bei Duldung wegen fehlender Reisedokumente","Die BPol ist für den Erstantrag auf Haft oder Ausreisegewahrsam und die Festnahme zuständig, wenn die Person in ihrem Zuständigkeitsbereich festgestellt wurde, vollziehbar ausreisepflichtig ist und die Abschiebung wegen fehlender Reisedokumente ausgesetzt ist, die nach Einschätzung der BPol innerhalb von sechs Monaten beschafft werden können.",["§ 71 Abs. 3a AufenthG"]);
       if(!validTitle) F("bad","Duldung abgelaufen","Vollziehbare Ausreisepflicht ohne Aussetzung – Ausländerbehörde kontaktieren.",["§ 58 AufenthG"]);
       if(isExit) H("Ausreise mit Duldung","Aussetzung der Abschiebung erlischt mit der Ausreise; Ausreise dokumentieren, Mitteilung an Ausländerbehörde.",["§ 60a Abs. 5 AufenthG","§ 87 Abs. 2 AufenthG"]);
       if(atBorderEntry) F("bad","Wiedereinreise mit Duldung","Duldung ist mit der Ausreise erloschen – Einreise ohne erforderlichen Titel.",["§ 60a Abs. 5 AufenthG","§ 14 Abs. 1 AufenthG"]);
@@ -260,7 +261,7 @@ function evaluate(s){
         if(!s.nearEntry) M("warn","Abschiebung durch BPol / Übergabe an Ausländerbehörde","Zuständigkeit der BPol für Abschiebungen bei Aufgriff bei/nach unerlaubter Einreise über Binnengrenze bzw. in anderem Grenzraum; sonst Ausländerbehörde (Abschiebungsandrohung).",["§ 71 Abs. 3 Nr. 1a, 1b AufenthG","§ 59 AufenthG","§ 71 Abs. 1 AufenthG"]);
         if(s.from!=="schengen") M("warn","Überprüfung (Screening) im Hoheitsgebiet prüfen","Bei Personen, die die Außengrenze irregulär überschritten haben und keiner Grenzkontrolle unterzogen wurden; zuständig BPol bei Feststellung in Erfüllung grenzpolizeilicher Aufgaben.",["Art. 7 Screening-VO","§ 71 Abs. 3 Nr. 9 AufenthG"],true);
       } else M("warn","Übergabe/Mitteilung an Ausländerbehörde","Aufenthaltsbeendigung durch Ausländerbehörde (Abschiebungsandrohung, Ausreisefrist).",["§ 59 AufenthG","§ 71 Abs. 1 AufenthG"]);
-      M("warn","Festhalten / Sicherungshaft","Bei dringendem Verdacht der Haftvoraussetzungen und Entziehungsgefahr: vorläufige Ingewahrsamnahme ohne vorherige richterliche Anordnung; unverzüglich richterliche Entscheidung. Minderjährige grds. nicht.",["§ 62 Abs. 1, 3, 3a, 3b AufenthG","§ 62 Abs. 5 AufenthG","§ 71 Abs. 3 Nr. 1e AufenthG","§ 415 FamFG","Art. 104 GG"]);
+      M("warn","Festhalten / Sicherungshaft","Bei dringendem Verdacht der Haftvoraussetzungen und Entziehungsgefahr: vorläufige Ingewahrsamnahme ohne vorherige richterliche Anordnung; unverzüglich richterliche Entscheidung. Minderjährige grds. nicht. Die BPol ist für den Erstantrag auf Haft oder Ausreisegewahrsam und die Festnahme auch unabhängig von Abs. 3 zuständig, wenn die Person in ihrem Zuständigkeitsbereich festgestellt wurde und vollziehbar ausreisepflichtig ist.",["§ 62 Abs. 1, 3, 3a, 3b AufenthG","§ 62 Abs. 5 AufenthG","§ 71 Abs. 3 Nr. 1e AufenthG","§ 71 Abs. 3a AufenthG","§ 415 FamFG","Art. 104 GG"]);
       M("info","Sicherheitsleistung / Beschlagnahme Rückflugscheine","Zur Sicherung der Kosten von Zurückschiebung/Abschiebung; Durchsuchung nach Geldmitteln bei Anhaltspunkten.",["§ 66 Abs. 1, 5 AufenthG","§ 71 Abs. 3 Nr. 4 AufenthG"]);
     }
     M("warn","Pass und Urkunden in Verwahrung nehmen","Pass/Urkunden eines Ausreisepflichtigen sollen verwahrt werden; bei fehlendem Pass Durchsuchung nach Identitätspapieren und Datenträgern zulässig.",["§ 48 Abs. 1, 3 AufenthG","§ 50 Abs. 5 AufenthG"]);
@@ -268,10 +269,10 @@ function evaluate(s){
     else M("info","Erkennungsdienstliche Behandlung bei Zurückweisung","Soll bei gefälschtem Pass, Verdacht erneuter unerlaubter Einreise oder Zurückweisung in sicheren Drittstaat.",["§ 49 Abs. 5 AufenthG"]);
   }
   if(lawful===null && !s.asylum){
-    M("warn","Sachverhalt aufklären","AZR-, INPOL-, SIS-, VIS- und EES-Abfrage; Kontakt Ausländerbehörde (Verlängerungsantrag/Fiktion).",["§ 49 Abs. 2, 3 AufenthG","§ 23 BPolG"]);
+    M("warn","Sachverhalt aufklären","AZR-, INPOL-, SIS-, VIS- und EES-Abfrage; Kontakt Ausländerbehörde (Verlängerungsantrag/Fiktion).",["§ 49 Abs. 2, 3 AufenthG","§ 26 BPolG"]);
   }
   if(s.identityUnclear || s.cat==="X"){
-    M("warn","Identitätsfeststellung","Feststellung und Sicherung der Identität; Mitwirkungspflicht; ggf. Festhalten, Durchsuchung, ED-Maßnahmen, Auslesen von Datenträgern (nur unter den Voraussetzungen des § 48 Abs. 3a).",["§ 23 Abs. 3 BPolG","§ 24 BPolG","§ 49 Abs. 2, 3 AufenthG","§ 48 Abs. 3, 3a AufenthG"]);
+    M("warn","Identitätsfeststellung","Feststellung und Sicherung der Identität; Mitwirkungspflicht; ggf. Festhalten, Durchsuchung, ED-Maßnahmen, Auslesen von Datenträgern (nur unter den Voraussetzungen des § 48 Abs. 3a).",["§ 26 Abs. 3 BPolG","§ 27 BPolG","§ 49 Abs. 2, 3 AufenthG","§ 48 Abs. 3, 3a AufenthG"]);
   }
   if(atBorderEntry && !passOK && !s.asylum) C("warn","Pass beim Grenzübertritt nicht mitgeführt","Ordnungswidrigkeit; Versuch ahndbar.",["§ 98 Abs. 3 Nr. 3 AufenthG","§ 98 Abs. 4 AufenthG","§ 13 Abs. 1 AufenthG"]);
 
@@ -299,7 +300,7 @@ function evaluate(s){
 }
 
 function hinweisFastId(M){
-  M("warn","Fast-ID durchführen","Identität zweifelhaft: Fingerabdruck-Schnellabgleich (Fast-ID) mit vorhandenen erkennungsdienstlichen Daten; Ergebnis dokumentieren.",["§ 24 BPolG","§ 49 Abs. 3, 6 AufenthG"],true);
+  M("warn","Fast-ID durchführen","Identität zweifelhaft: Fingerabdruck-Schnellabgleich (Fast-ID) mit vorhandenen erkennungsdienstlichen Daten; Ergebnis dokumentieren.",["§ 27 BPolG","§ 49 Abs. 3, 6 AufenthG"],true);
 }
 
 function commonTail(s,R,{M,N,H,P,minor,lawful}){
@@ -322,6 +323,6 @@ function commonTail(s,R,{M,N,H,P,minor,lawful}){
     N("Benachrichtigung Angehöriger/Vertrauensperson","Bei Freiheitsentziehung.",["Art. 104 Abs. 4 GG"]);
   }
   if(lawful===false || s.asylum || s.restrictViol) N("Ausländerbehörde / BAMF","Mitteilung über ausländerrechtlich relevante Sachverhalte; AZR-Speicherung.",["§ 87 Abs. 2 AufenthG","§ 2 AZRG"]);
-  H("Datenschutz / Dokumentation","Maßnahme und Erwägungen im Vermerk dokumentieren; nur erforderliche Daten erheben.",["§ 29 BPolG","BDSG","2016/680"],true);
+  H("Datenschutz / Dokumentation","Maßnahme und Erwägungen im Vermerk dokumentieren; nur erforderliche Daten erheben.",["§ 42 BPolG","§ 46 Abs. 2 BPolG","BDSG","2016/680"],true);
 }
 

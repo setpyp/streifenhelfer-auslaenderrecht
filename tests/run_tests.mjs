@@ -49,6 +49,9 @@ for (const f of faelle) {
     for (const want of e[key] || []) if (!titles.some(t => t.includes(want))) errs.push(`${key}: fehlt "${want}" (vorhanden: ${titles.join(" | ") || "–"})`);
     for (const bad of e[key + "_nicht"] || []) if (titles.some(t => t.includes(bad))) errs.push(`${key}: darf "${bad}" nicht enthalten`);
   }
+  const zitate = ["find", "meas", "crim", "notify", "notes"].flatMap(part => R[part].flatMap(i => i.n || []));
+  for (const z of e.zitate || []) if (!zitate.includes(z)) errs.push(`Zitat fehlt: "${z}"`);
+  for (const z of e.zitate_nicht || []) if (zitate.includes(z)) errs.push(`Zitat darf nicht vorkommen: "${z}"`);
   // jede Aussage braucht mindestens ein Normzitat (außer reinen Statusmeldungen)
   for (const part of ["find", "meas", "crim", "notify"]) for (const i of R[part]) if (!i.n?.length) errs.push(`ohne Normzitat: "${i.t}"`);
   if (errs.length) { failed++; console.log(`✗ ${f.name}\n   - ${errs.join("\n   - ")}`); }

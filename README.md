@@ -12,6 +12,7 @@ Offlinefähige Entscheidungshilfe zur aufenthaltsrechtlichen Bewertung bei Kontr
 | `daten/laender.json` | Staaten nach Visumkategorie (VO (EU) 2018/1806) mit Hinweisen |
 | `daten/sonderregelungen.json` | Befreiungen außerhalb der Visumliste: AufenthV §§ 16–30 (inkl. Anlage A), Assoziationsrecht EWG–Türkei, Hinweise auf bilaterale Abkommen/Ausnahmen anderer Mitgliedstaaten – je Regel Voraussetzungen, Rechtsfolge, Geltungsbereich, Quellen |
 | `tools/build_rechtsdaten.py` | erzeugt das Rechtsdatenpaket aus amtlichen Quellen und prüft die Zitate |
+| `tools/bgbl_monitor.py` | Frühwarnung: prüft neue Ausgaben des Bundesgesetzblatts im Volltext auf Gesetze aus dem Katalog |
 | `weisungen-muster/` | Muster für interne Weisungspakete |
 | `WEISUNGEN-FORMAT.md` | Format und Serveranforderungen für interne Weisungen |
 
@@ -28,10 +29,25 @@ python tools/build_rechtsdaten.py
 - Prüft jedes Zitat im Regelwerk: **Exit-Code 1**, wenn eine zitierte Norm weggefallen oder
   nicht auffindbar ist. Dann vor der Auslieferung das Regelwerk anpassen.
 - Setzt die Cache-Version im Service Worker, damit Geräte das neue Paket laden.
+- **Exit-Code 2:** Mindestens eine Quelle war nicht abrufbar, der bisherige Wortlaut wurde übernommen.
 - Die App warnt, wenn das Paket älter als 120 Tage ist.
 
 Für den Betrieb empfiehlt sich ein regelmäßiger Lauf (z. B. wöchentlich) mit fachlicher
 Freigabe vor dem Ausrollen.
+
+### Bundesgesetzblatt als Primärquelle
+
+Das Bundesgesetzblatt (recht.bund.de) ist die amtliche Quelle dafür, **was sich wann ändert**. Es enthält
+aber überwiegend Änderungsbefehle als PDF und keinen konsolidierten Text, und ältere Stammgesetze liegen
+nicht auf der Plattform. Der **Wortlaut** kommt deshalb aus der konsolidierten Fassung.
+
+```
+python tools/bgbl_monitor.py --tage 8
+```
+
+Der Wochenlauf meldet Treffer und Quellausfälle im Issue „Rechtsstand prüfen“ (Label `rechtsstand`).
+Ein grüner Workflow allein bedeutet nicht, dass alle Texte aktuell sind. Neue Gesetze im Katalog
+brauchen in `daten/gesetze.json` das Feld `bgbl` (Name des Gesetzes für die Volltextsuche).
 
 ## Veröffentlichung (GitHub Pages)
 
